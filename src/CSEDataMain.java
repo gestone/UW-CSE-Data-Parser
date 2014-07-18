@@ -11,7 +11,7 @@ public class CSEDataMain {
     private final String[] ACTION = new String[]{"PARSE", "CORRELATE"};
 
     public static void main(String[] args){
-
+        System.out.println("check");
     }
 
     public static Map<String, Student> getFile(String year, String whichClass){
