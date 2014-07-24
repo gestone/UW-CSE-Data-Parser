@@ -1,0 +1,7 @@
+CSE 142: Winter 2013 and CSE 143: Spring 2013
+Total students taking consecutive quarters: 318
+
+Homework correlation: 0.5068718002292567
+Midterm correlation: 0.37069861008884847
+Final correlation: 0.45587989801155954
+Grade correlation: 0.5204497737830797
