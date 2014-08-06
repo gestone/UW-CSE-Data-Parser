@@ -1,4 +1,4 @@
-package Internal;
+package Internal.Support;
 
 /**
  The DrawingPanel class provides a simple interface for drawing persistent

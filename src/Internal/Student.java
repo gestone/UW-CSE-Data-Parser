@@ -6,7 +6,7 @@ import org.json.JSONObject;
 /**
  * Created by Justin on 7/12/2014.
  */
-public class Student {
+public class Student implements Comparable<Student>{
 
     private int code;
     private int midterm;
@@ -50,8 +50,7 @@ public class Student {
 
     @Override
     public String toString() {
-        return homework + "% " + midterm + " midterm " + finalExam + " final " + totalScore + " total score " + grade
-                + " overall grade";
+        return grade + "";
     }
 
     protected JSONObject getJSONObject(){
@@ -69,7 +68,23 @@ public class Student {
         return student;
     }
 
-    public Double[] getStudentInDoubleArray(){
+    @Override
+    public int compareTo(Student other) {
+        if (this.getGrade() - other.getGrade() == 0){
+            return 0;
+        } else if (this.getGrade() > other.getGrade()){
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+
+    /**
+     *
+     * @return
+     */
+    protected Double[] getStudentInDoubleArray(){
         return new Double[]{homework, (double) midterm, (double) finalExam, totalScore, grade};
     }
 }

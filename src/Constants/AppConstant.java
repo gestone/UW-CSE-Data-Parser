@@ -5,9 +5,11 @@ package Constants;
  */
 public class AppConstant {
 
-    /** Change this to change what the program does.*/
+    /** All CSEDataMain Constants */
 
-    public static final Action[] PROCESSING_TYPES = {Action.CORRELATE, Action.PARSE};
+    public static final String CS_RAW_DATA_DIR = "CSRawData/";
+
+    public static final Action[] PROCESSING_TYPES = {Action.CORRELATE, Action.GRAPH_GRADE_COMPARSION};
 
     /** All category types */
     public static final int HOMEWORK = 0;
@@ -26,9 +28,9 @@ public class AppConstant {
 
 
     /**All graphing constants */
-    public static final int GRAPH_WIDTH = 1300;
+    public static final int GRAPH_WIDTH = 1250;
 
-    public static final int GRAPH_HEIGHT = 500;
+    public static final int GRAPH_HEIGHT = 900;
 
     public static final int GRAPH_MARGIN = 50;
 
@@ -36,11 +38,17 @@ public class AppConstant {
 
     public static final int LABEL_X_MARGIN = 20;
 
-    public static final int ADJUSTED_GRAPH_HEIGHT = GRAPH_HEIGHT - GRAPH_MARGIN;
+    public static final int ADJUSTED_GRAPH_HEIGHT = GRAPH_HEIGHT - GRAPH_MARGIN; // Used for drawing graph axis
 
-    public static final int ADJUSTED_GRAPH_WIDTH = GRAPH_WIDTH - GRAPH_MARGIN;
+    public static final int ADJUSTED_GRAPH_WIDTH = GRAPH_WIDTH - GRAPH_MARGIN; // Used for drawing graph axis
 
     public static final int TITLE_MARGIN = 20;
+
+    public static final int POINT_SIZE = 3; // pixels the point size for a single student should be
+
+    public static final int X_LABEL_SPACING = ADJUSTED_GRAPH_WIDTH / 41;
+
+    public static final int Y_LABEL_SPACING = ADJUSTED_GRAPH_HEIGHT / 41;
 
     /**All correlation constants */
     public static final int CSE_142 = 0;

@@ -2,6 +2,9 @@ package Internal;
 
 import Constants.Action;
 import Constants.AppConstant;
+import Internal.Math.LinearRegressionModel;
+import Internal.Math.MathUtils;
+import Internal.Support.DrawingPanel;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,7 +46,6 @@ public class CSEData {
         int index = 0;
         for(Integer code : intersect.keySet()){
             List<Student> studentPerformance = intersect.get(code);
-            // Change these categories to correlate different aspects of student performance
             cse142[index] = studentPerformance.get(AppConstant.CSE_142);
             cse143[index] = studentPerformance.get(AppConstant.CSE_143);
             index++;
@@ -51,6 +53,65 @@ public class CSEData {
         processCorrelations(cse142, cse143, cse143Data);
         if(Arrays.asList(AppConstant.PROCESSING_TYPES).contains(Action.PARSE)){
             twoQuartersToJSON(cse142, cse143, cse143Data);
+        }
+        if(Arrays.asList(AppConstant.PROCESSING_TYPES).contains(Action.GRAPH_GRADE_COMPARSION)){
+            graphCorrelationGradesTwoQuarters(cse142, cse143, cse143Data);
+        }
+    }
+
+    private void graphCorrelationGradesTwoQuarters(Student[] cse142, Student[] cse143, CSEData cse143Data){
+        DrawingPanel graph = new DrawingPanel(AppConstant.GRAPH_WIDTH, AppConstant.GRAPH_HEIGHT);
+        Graphics g = graph.getGraphics();
+        g.drawString(generateTitle() + " vs. " + cse143Data.generateTitle() + " Scatter Plot",
+                AppConstant.ADJUSTED_GRAPH_WIDTH / 2,
+                AppConstant.TITLE_MARGIN);
+        createBothAxis(g);
+        createGradeXAxis(g);
+        createGradeYAxis(g);
+        plotGradePoints(cse142, cse143, g);
+        double[] cse142Grades = new double[cse142.length];
+        double[] cse143Grades = new double[cse143.length];
+        for(int i = 0; i < cse142.length; i++){
+            cse142Grades[i] = cse142[i].getGrade();
+            cse143Grades[i] = cse143[i].getGrade();
+        }
+        createLineBestFit(cse142Grades, cse143Grades, g);
+    }
+
+    private void createLineBestFit(double[] cse142Grades, double[] cse143Grades, Graphics g){
+        LinearRegressionModel l = new LinearRegressionModel(cse142Grades, cse143Grades);
+        l.compute(); // compute coefficients
+        double[] coeff = l.getCoefficients();
+        double b = coeff[0];
+        double mx = 1 - coeff[1];
+        int x1 = AppConstant.GRAPH_MARGIN;
+        int y1 = AppConstant.ADJUSTED_GRAPH_HEIGHT - (int) (b * AppConstant.Y_LABEL_SPACING);
+        int x2 = AppConstant.GRAPH_WIDTH;
+        int y2 = (int) (AppConstant.Y_LABEL_SPACING * 40 * mx) - (int) (b * AppConstant.Y_LABEL_SPACING);
+        g.setColor(Color.BLACK);
+        g.drawLine(x1, y1, x2, y2);
+        double roundedMx = MathUtils.roundThreePlaces(coeff[1]);
+        double roundedB = MathUtils.roundThreePlaces(coeff[0]);
+        g.drawString("y = " + roundedMx + "x " + " + " + roundedB, AppConstant.GRAPH_MARGIN * 2,
+                AppConstant.GRAPH_MARGIN);
+        g.drawString("Pearson's Correlation: " + MathUtils.roundThreePlaces(MathUtils.calculateCorrelation(cse142Grades,
+                cse143Grades)), AppConstant.GRAPH_MARGIN * 2, AppConstant.GRAPH_MARGIN * 2);
+    }
+
+    private void plotGradePoints(Student[] cse142, Student[] cse143, Graphics g){
+        g.setColor(Color.BLACK);
+        for(int i = 0; i < cse142.length; i++){
+            double cse142Grade = cse142[i].getGrade();
+            double cse143Grade = cse143[i].getGrade();
+            int instances = 0;
+            for(int j = 0; j < cse142.length; j++){
+                if(cse142[j].getGrade() == cse142Grade && cse143[j].getGrade() == cse143Grade){
+                    instances++;
+                }
+            }
+            int xShift =  AppConstant.X_LABEL_SPACING + ((int) (cse142Grade * 10) * AppConstant.X_LABEL_SPACING) + AppConstant.GRAPH_MARGIN;
+            int yShift =  AppConstant.ADJUSTED_GRAPH_HEIGHT - (int) (cse143Grade * 10 * AppConstant.Y_LABEL_SPACING);
+            g.fillOval(xShift, yShift, AppConstant.POINT_SIZE * instances, AppConstant.POINT_SIZE * instances);
         }
     }
 
@@ -87,8 +148,8 @@ public class CSEData {
                     processCSE143[k] = decomposedStudent143.get(k)[j];
                 }
                 if(j != AppConstant.TOTAL_PERCENT){
-                    String correlationMsg = AppConstant.CATEGORY_TYPES[j] + " correlation: " + calculateCorrelation
-                            (processCSE142, processCSE143);
+                    String correlationMsg = AppConstant.CATEGORY_TYPES[j] + " correlation: " + MathUtils
+                            .calculateCorrelation(processCSE142, processCSE143);
                     System.out.println(correlationMsg);
                     p.println(correlationMsg);
                 }
@@ -148,43 +209,6 @@ public class CSEData {
     }
 
 
-    /**
-     *
-     * @param categoryOne
-     * @param categoryTwo
-     * @return
-     */
-    private double calculateCorrelation(double[] categoryOne, double[] categoryTwo){
-        double cse142Avg = 0;
-        double cse143Avg = 0;
-        for(int i = 0; i < categoryOne.length; i++){
-            cse142Avg += categoryOne[i];
-            cse143Avg += categoryTwo[i];
-        }
-        cse142Avg /= categoryOne.length;
-        cse143Avg /= categoryTwo.length;
-        double[] cse142AColumn = new double[categoryOne.length];
-        double[] cse143BColumn = new double[categoryTwo.length];
-        double[] aColTimesB = new double[categoryOne.length];
-        double[] aSquared = new double[categoryOne.length];
-        double[] bSquared = new double[categoryTwo.length];
-        for(int i = 0; i < categoryTwo.length; i++){
-            cse142AColumn[i] = categoryOne[i] - cse142Avg;
-            cse143BColumn[i] = categoryTwo[i] - cse143Avg;
-            aColTimesB[i] = cse142AColumn[i] * cse143BColumn[i];
-            aSquared[i] = cse142AColumn[i] * cse142AColumn[i];
-            bSquared[i] = cse143BColumn[i] * cse143BColumn[i];
-        }
-        double aTimesBTotal, aSquaredTotal, bSquaredTotal;
-        aTimesBTotal = aSquaredTotal = bSquaredTotal = 0;
-        for(int i = 0; i < categoryTwo.length; i++){
-            aTimesBTotal += aColTimesB[i];
-            aSquaredTotal += aSquared[i];
-            bSquaredTotal += bSquared[i];
-        }
-        return aTimesBTotal / Math.sqrt(aSquaredTotal * bSquaredTotal);
-    }
-
 
     /**
      *
@@ -212,7 +236,7 @@ public class CSEData {
         Graphics g = graph.getGraphics();
         int[] grades = getGradeFrequencies();
         int frequencyTimes = (findMaxFrequency(grades) + 4) / 5; // round to the nearest multiple of 5.
-        createGraphAxis(g, grades, frequencyTimes);
+        createSingleGraphAxis(g, frequencyTimes);
         graphData(g, grades, frequencyTimes);
     }
 
@@ -271,28 +295,83 @@ public class CSEData {
         System.out.println("Finished writing to JSON! The file is available at " + jsonToWrite.getPath() + ".");
     }
 
+    public void findGradeCutoffs() {
+        List<Student> allStudents = new ArrayList<Student>();
+        for (Integer code : allData.keySet()){
+            allStudents.add(allData.get(code));
+        }
+        Collections.sort(allStudents);
+        double[] cutoffs = new double[41];
+        double cur = allStudents.get(0).getGrade();
+        for (int i = 0; i < allStudents.size() - 1; i++){
+            double nextGrade = allStudents.get(i + 1).getGrade();
+            if(cur > nextGrade){
+                cutoffs[(int) (cur * 10)] = allStudents.get(i).getTotalScore();
+                cur = nextGrade;
+            }
+        }
+        Map<Double, Double> gradeMapping = new TreeMap<Double, Double>();
+        for (int j = 0; j <= 40; j++){
+            gradeMapping.put(j / 10.0, cutoffs[j]);
+        }
+        System.out.println(gradeMapping);
+    }
+
+    private double[] reverse(double[] data) {
+        int left = 0;
+        int right = data.length - 1;
+
+        while( left < right ) {
+            // swap the values at the left and right indices
+            double temp = data[left];
+            data[left] = data[right];
+            data[right] = temp;
+
+            // move the left and right index pointers in toward the center
+            left++;
+            right--;
+        }
+        return data;
+    }
 
 
     /**
      *
      * @param g
-     * @param grades
      */
-    private void createGraphAxis(Graphics g, int[] grades, int frequencyTimes) {
+    private void createSingleGraphAxis(Graphics g, int frequencyTimes) {
+        createBothAxis(g);
+        createGradeXAxis(g);
+        createFrequencyYAxis(g, frequencyTimes);
+    }
+
+    private void createGradeXAxis(Graphics g){
+        int labelYPos = AppConstant.ADJUSTED_GRAPH_HEIGHT + AppConstant.LABEL_Y_MARGIN;
+        for (int i = 0; i <= 40; i++) { // 0.0 to 4.0
+            int labelXPos = AppConstant.GRAPH_MARGIN + (i * AppConstant.X_LABEL_SPACING) + AppConstant.LABEL_X_MARGIN;
+            g.drawString((i * 1.0) / 10 + "", labelXPos, labelYPos);
+        }
+    }
+
+    private void createGradeYAxis(Graphics g){
+        int labelXPos = AppConstant.LABEL_Y_MARGIN;
+        for(int i = 0; i <= 40; i++){
+            int labelYPos = AppConstant.ADJUSTED_GRAPH_HEIGHT - (i * AppConstant.Y_LABEL_SPACING);
+            g.drawString((i * 1.0) / 10 + "", labelXPos, labelYPos);
+        }
+    }
+
+    private void createBothAxis(Graphics g){
         g.setColor(Color.BLACK);
         g.drawLine(AppConstant.GRAPH_MARGIN, 0, AppConstant.GRAPH_MARGIN, AppConstant.ADJUSTED_GRAPH_HEIGHT);
         g.drawLine(AppConstant.GRAPH_MARGIN, AppConstant.ADJUSTED_GRAPH_HEIGHT, AppConstant.GRAPH_WIDTH,
                 AppConstant.ADJUSTED_GRAPH_HEIGHT);
-        int xMargin = AppConstant.ADJUSTED_GRAPH_WIDTH / 41;
-        int labelYPos = AppConstant.ADJUSTED_GRAPH_HEIGHT + AppConstant.LABEL_Y_MARGIN;
-        for (int i = 0; i < grades.length; i++) { // 0.0 to 4.0
-            int labelXPos = AppConstant.GRAPH_MARGIN + (i * xMargin) + AppConstant.LABEL_X_MARGIN;
-            g.drawString((i * 1.0) / 10 + "", labelXPos, labelYPos);
-        }
-        int yMargin = AppConstant.ADJUSTED_GRAPH_HEIGHT / frequencyTimes;
+    }
+
+    private void createFrequencyYAxis(Graphics g, int frequencyTimes){
         for (int i = 0; i <= frequencyTimes; i++) {
             g.drawString(i * 5 + "", AppConstant.GRAPH_MARGIN - AppConstant.LABEL_X_MARGIN,
-                    AppConstant.ADJUSTED_GRAPH_HEIGHT - (yMargin * i));
+                    AppConstant.ADJUSTED_GRAPH_HEIGHT - (AppConstant.Y_LABEL_SPACING * i));
         }
     }
 

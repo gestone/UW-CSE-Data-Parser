@@ -7,7 +7,16 @@ package Constants;
 public enum Action {
 
     PARSE,                   // Parses the text file and outputs it into a JSON file
-    CORRELATE,               // Correlates
-    PERCENTAGE_DISTRIBUTION, //
-    GRAPH                    //
+
+    CORRELATE,               // Correlates two raw CS data files, 142 and 143 by calculating correlations for
+                             // homework, midterm, final, and the correlation between the final grades from 142 and 143.
+
+    PERCENTAGE_DISTRIBUTION, // Writes out the percentage distribution of a single quarter to a text file and the
+                             // console.
+
+    GRAPH,                   // Graphs the distribution of grades of a single quarter.
+
+    GRAPH_GRADE_COMPARSION,  // Graphs the grade correlation data points in a scatter plot. Correlate must be selected.
+
+    CUTOFFS                  // Writes out the percentage cutoffs of a single quarter to a text file and the console.
 }
