@@ -18,7 +18,15 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Created by Justin on 7/19/2014.
+ * This class serves to store one quarter of all student data of either CSE 142 or CSE 143. It has the capability to
+ * convert all student data into JSON, graph the grade distribution of a single quarter in a bar graph, and
+ * print to the console how many students got a certain grade along with a percentage of how many students got that
+ * grade.
+ *
+ * Moreover, this class can also process two consecutive quarters where the first quarter is a CSE 142 quarter and
+ * the second quarter is a CSE 143 quarter. In this configuration, both quarters can be analyzed for students who
+ * take consecutive quarters. From obtaining their performance in CSE 142 and 143, correlations can be calculated,
+ * a scatter plot can be formed, and the students' performances in both quarters can be written to JSON format.
  */
 public class CSEData {
     private Map<Integer, Student> allData;
@@ -30,7 +38,9 @@ public class CSEData {
     private Student[] cse143;
 
     /**
-     * @param spreadSheet
+     * Constructor for CSEData.
+     * @param spreadSheet The spreadsheet containing all of the student data for a given quarter (CSE 142 or CSE 143).
+     * @param year        The year that the quarter took place.
      */
     public CSEData(File spreadSheet, String year) {
         allData = new HashMap<Integer, Student>();
@@ -39,13 +49,21 @@ public class CSEData {
         createDataMap(spreadSheet);
     }
 
+    /**
+     * Constructor for CSEData. Used after a JSON file containing the CS Student data is already processed.
+     * @param processedStudents The already processed students from the JSON file.
+     */
     public CSEData(Map<Integer, Student> processedStudents) {
         allData = processedStudents;
         fileTitle = "none";
         year = "none";
     }
 
-
+    /**
+     * Processes Actions for one quarter to be performed. Options include graphing the grade data,
+     * writing out a percentage distribution to a file and the console, and parsing the grade data into a JSON file.
+     * @param actions A List of Actions to be performed specified by the user.
+     */
     public void processOneQuarter(List<Action> actions) {
         for (Action a : actions) {
             switch (a) {
@@ -65,6 +83,13 @@ public class CSEData {
         }
     }
 
+    /**
+     * Processes Actions for two quarters to be performed. Options include correlating both of the quarters and
+     * printing out correlations to the console which calculates the correlations between final overall grades,
+     * homework, midterm, and final exam grades.
+     * @param cse143Data The other CSE 143 to be compared to.
+     * @param actions    A List of Actions to be performed specified by the user.
+     */
     public void processTwoQuarters(CSEData cse143Data, List<Action> actions) {
         constructStudents(constructIntersectMap(cse143Data));
         for (Action a : actions) {
@@ -85,6 +110,10 @@ public class CSEData {
         }
     }
 
+    /**
+     * Constructs the CSE 142 and 143 students to be stored.
+     * @param intersect Contains the performances of students in both 142 and 143 mapped from a code.
+     */
     private void constructStudents(Map<Integer, List<Student>> intersect) {
         cse142 = new Student[intersect.size()];
         cse143 = new Student[intersect.size()];
@@ -97,6 +126,10 @@ public class CSEData {
         }
     }
 
+    /**
+     * Graphs the correlation grades between two quarters in a scatter plot.
+     * @param cse143Data The other CSE 143 to be compared to.
+     */
     private void graphCorrelationGradesTwoQuarters(CSEData cse143Data) {
         DrawingPanel graph = new DrawingPanel(AppConstant.GRAPH_WIDTH, AppConstant.GRAPH_HEIGHT);
         Graphics g = graph.getGraphics();
@@ -120,6 +153,12 @@ public class CSEData {
         createLineBestFit(cse142Grades, cse143Grades, g);
     }
 
+    /**
+     * Creates a line of best fit for the graph.
+     * @param cse142Grades The final overall grades of students in CSE 142.
+     * @param cse143Grades The final overall grades of students in CSE 143.
+     * @param g            The graphics used to draw the line.
+     */
     private void createLineBestFit(double[] cse142Grades, double[] cse143Grades, Graphics g) {
         LinearRegressionModel l = new LinearRegressionModel(cse142Grades, cse143Grades);
         l.compute(); // compute coefficients
@@ -142,6 +181,12 @@ public class CSEData {
                 AppConstant.GRAPH_MARGIN * 3);
     }
 
+    /**
+     * Plots the individual points on the graph.
+     * @param cse142 The CSE 142 student performance.
+     * @param cse143 The CSE 143 student performance.
+     * @param g      The graphics used to draw the line.
+     */
     private void plotGradePoints(Student[] cse142, Student[] cse143, Graphics g) {
         g.setColor(Color.BLACK);
         for (int i = 0; i < cse142.length; i++) {
@@ -160,6 +205,7 @@ public class CSEData {
     }
 
     /**
+     * Prints out correlations both to a file and the console.
      * @param cse143Data
      */
     private void processCorrelations(CSEData cse143Data) {
