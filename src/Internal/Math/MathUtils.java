@@ -109,8 +109,8 @@ public class MathUtils {
      * @param number
      * @return
      */
-    public static double roundThreePlaces(double number){
-        return (double) Math.round(number * 1000) / 1000;
+    public static double roundNPlaces(double number, int n){
+        return (double) Math.round(number * Math.pow(10, n)) / Math.pow(10, n);
     }
 
 }

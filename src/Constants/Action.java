@@ -12,11 +12,10 @@ public enum Action {
                              // homework, midterm, final, and the correlation between the final grades from 142 and 143.
 
     PERCENTAGE_DISTRIBUTION, // Writes out the percentage distribution of a single quarter to a text file and the
-                             // console.
+                             // console. Also writes out the corresponding cutoffs for each of the grades.
 
     GRAPH,                   // Graphs the distribution of grades of a single quarter.
 
     GRAPH_GRADE_COMPARSION,  // Graphs the grade correlation data points in a scatter plot. Correlate must be selected.
 
-    CUTOFFS                  // Writes out the percentage cutoffs of a single quarter to a text file and the console.
 }

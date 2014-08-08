@@ -13,31 +13,39 @@ import java.util.Scanner;
 public class CSEDataMain {
 
     public static void main(String[] args){
-//        Scanner userInput = new Scanner(System.in);
-//        String year = getYear(userInput);
-//        List<Action> actionsToProcess = actionsToPerform(userInput);
-
-
-        getFile("2013", "cse143");
+        List<Action> actionsToProcess;
+        File quarterOne, quarterTwo;
+        Scanner userInput = new Scanner(System.in);
+        String year = getYear(userInput);
+        if (yesTo("Would you like to process only one file? ", userInput)){
+            actionsToProcess = getSingleQuarterActions(userInput, year);
+            quarterOne = getSingleFile(userInput, year, "");
+            CSEData quarter = new CSEData(quarterOne, year);
+            quarter.processOneQuarter(actionsToProcess);
+        } else {
+            while (!hasBothQuarters(year)){
+                System.out.println("Choose another year. This year does not contain CSE 142 and CSE 143.");
+                System.out.println();
+                year = getYear(userInput);
+            }
+            actionsToProcess = getTwoQuarterActions(userInput, year);
+            System.out.println();
+            System.out.println("Choose a CSE 142 quarter.");
+            System.out.println();
+            quarterOne = getSingleFile(userInput, year, "cse142");
+            System.out.println("CSE 142 quarter, " + quarterOne.getName() + " successfully chosen.");
+            System.out.println();
+            System.out.println("Choose a CSE 143 quarter.");
+            System.out.println();
+            quarterTwo = getSingleFile(userInput, year, "cse143");
+            System.out.println("CSE 143 quarter, " + quarterTwo.getName() + " successfully chosen.");
+            System.out.println();
+            CSEData cse142 = new CSEData(quarterOne, year);
+            CSEData cse143 = new CSEData(quarterTwo, year);
+            cse142.processTwoQuarters(cse143, actionsToProcess);
+        }
     }
 
-    /**
-     *
-     * @param year
-     * @param whichClass
-     * @return
-     */
-    public static void getFile(String year, String whichClass){
-        File f  = new File("CSRawData/2013/cse142winter2013.txt");
-        CSEData winter2014 = new CSEData(f, year);
-        winter2014.findGradeCutoffs();
-//        File aut2013 = new File("CSRawData/2013/cse143spring2013.txt");
-//        CSEData autumn2013 = new CSEData(aut2013, year);
-//        winter2014.correlateTwoQuarters(autumn2013);
-//        autumn2013.writeSingleQuarterToJSON();
-//        autumn2013.graphGradeData();
-//        autumn2013.getGradeDistribution();
-    }
 
     /**
      *
@@ -45,17 +53,32 @@ public class CSEDataMain {
      * @return
      */
     public static String getYear(Scanner userInput){
-        String year;
-        do {
+        String year = "-1";
+        while(!yearChosen(year)){
             System.out.print("Which year in the CSRawData directory would you like to analyze? ");
             year = userInput.next();
             if (!yearChosen(year)) {
                 System.out.println("That year is not a valid directory.");
                 System.out.println();
             }
-        } while(!yearChosen(year));
+        }
         return year;
     }
+
+    public static boolean hasBothQuarters(String year){
+        File[] dir = new File(AppConstant.CS_RAW_DATA_DIR + year).listFiles();
+        boolean cse142 = false;
+        boolean cse143 = false;
+        for (File f : dir){
+            if (f.getName().contains("cse142")){
+                cse142 = true;
+            }
+            if (f.getName().contains("cse143")){
+                cse143 = true;
+            }
+        }
+        return cse142 && cse143;
+     }
 
     /**
      *
@@ -66,17 +89,29 @@ public class CSEDataMain {
         return new File(AppConstant.CS_RAW_DATA_DIR + year).exists();
     }
 
-    public static List<File> filesToAnalyze(Scanner userInput, String year){
-        List<File> files = new ArrayList<File>();
+    public static File getSingleFile(Scanner userInput, String year, String cseQuarter){
         File[] dir = new File(AppConstant.CS_RAW_DATA_DIR + year).listFiles();
-        System.out.println("List of files: ");
-        for(File f : dir){
-            System.out.println(f.getName());
-        }
+        System.out.println("List of files:");
         for(int i = 0; i < dir.length; i++){
-
+            System.out.println("(" + (i + 1) + ") " + dir[i].getName());
         }
-        return files;
+        System.out.println("Which file would you like to process? (Type in the number before the file) ");
+        String fileNumber;
+        int fileIndex = -1;
+        while (fileIndex <= 0 || fileIndex > dir.length){
+            System.out.print("Please enter in a valid number (1 - " + dir.length + ") ");
+            fileNumber = userInput.next();
+            if (fileNumber.matches("[0-9]+")){
+                fileIndex = Integer.parseInt(fileNumber);
+                if(!cseQuarter.isEmpty() && fileIndex > 0 && fileIndex <= dir.length){
+                    if(!dir[fileIndex - 1].getName().contains(cseQuarter)){
+                        System.out.println("Please choose a " + cseQuarter.toUpperCase() + " quarter.");
+                        fileIndex = -1;
+                    }
+                }
+            }
+        }
+        return dir[fileIndex - 1];
     }
 
     /**
@@ -84,34 +119,37 @@ public class CSEDataMain {
      * @param userInput
      * @return
      */
-    public static List<Action> actionsToPerform(Scanner userInput){
+    public static List<Action> getSingleQuarterActions(Scanner userInput, String year){
         List<Action> actionsToPerform = new ArrayList<Action>();
-        if (yesTo("Would you like to process only one file?", userInput)) {
-            if (yesTo("Would you like to parse the data into a JSON file?", userInput)) {
+            if (yesTo("Would you like to parse the data into a JSON File?", userInput)) {
                 actionsToPerform.add(Action.PARSE);
             }
             if (yesTo("Would you like to graph the distribution of grades of a quarter?", userInput)){
                 actionsToPerform.add(Action.GRAPH);
             }
-            if (yesTo("Would you like to see the percentage distribution of grades of a quarter?", userInput)){
+            if (yesTo("Would you like to see the percentage distribution of grades of a quarter with the cutoffs for " +
+                            "each grade?", userInput)){
                 actionsToPerform.add(Action.PERCENTAGE_DISTRIBUTION);
             }
-        } else {
-            if (yesTo("Would you like to parse the overlapping data from the two quarters into a JSON file?",
-                    userInput)){
-                actionsToPerform.add(Action.PARSE);
-            }
-            if (yesTo("Would you like to calculate correlation coefficients between the two files?", userInput)){
-                actionsToPerform.add(Action.CORRELATE);
-            }
-            if (yesTo("Would you like to see a scatter plot of CSE 142 grades vs CSE 143 grades?", userInput)){
-                actionsToPerform.add(Action.GRAPH_GRADE_COMPARSION);
-            }
+        return actionsToPerform;
+    }
+
+    public static List<Action> getTwoQuarterActions(Scanner userInput, String year){
+        List<Action> actionsToPerform = new ArrayList<Action>();
+        if (yesTo("Would you like to parse the repeat students' data into a JSON file?", userInput)){
+            actionsToPerform.add(Action.PARSE);
+        }
+        if (yesTo("Would you like to see a scatter plot of CSE 142 performance vs CSE 143 performance?", userInput)){
+            actionsToPerform.add(Action.GRAPH_GRADE_COMPARSION);
+        }
+        if (yesTo("Would you like to correlate the students' CSE 142 grades and CSE 143 grades?", userInput)){
+            actionsToPerform.add(Action.CORRELATE);
         }
         return actionsToPerform;
     }
 
     public static boolean yesTo(String prompt, Scanner userInput) {
+        System.out.print(prompt + " (y/n)? ");
         String response = userInput.next().trim().toLowerCase();
         while (!response.equals("y") && !response.equals("n")) {
             System.out.println("Please answer y or n.");

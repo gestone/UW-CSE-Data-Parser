@@ -9,6 +9,8 @@ public class AppConstant {
 
     public static final String CS_RAW_DATA_DIR = "CSRawData/";
 
+    public static final String CS_JSON_DATA_DIR = "CSDataJSON/";
+
     public static final Action[] PROCESSING_TYPES = {Action.CORRELATE, Action.GRAPH_GRADE_COMPARSION};
 
     /** All category types */

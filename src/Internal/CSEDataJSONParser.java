@@ -17,71 +17,75 @@ public class CSEDataJSONParser {
     private Map<Integer, List<Student>> twoQuarterStudents;
 
 
-    public CSEDataJSONParser(File JSONFile){
+    public CSEDataJSONParser() {
         allStudents = new HashMap<Integer, Student>();
         twoQuarterStudents = new HashMap<Integer, List<Student>>();
-        parseSingleQuarterJSON(JSONFile);
     }
 
-    private void parseSingleQuarterJSON(File JSONFile){
+    public void parseSingleQuarterJSON(File JSONFile) {
         try {
             String JSON = readFile(JSONFile);
             JSONObject file = new JSONObject(JSON);
             JSONArray students = file.getJSONArray("students");
-            for(int i = 0; i < students.length(); i++){
+            for (int i = 0; i < students.length(); i++) {
                 JSONObject cur = students.getJSONObject(i);
                 int code = cur.getInt("code");
                 allStudents.put(code, createStudent(cur));
             }
-        } catch(JSONException e){
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void parseTwoQuarterJSON(File JSONFile){
-        try{
+    public void parseTwoQuarterJSON(File JSONFile) {
+        try {
             String JSON = readFile(JSONFile);
-            JSONArray j = new JSONArray(JSON);
-            for(int i = 0; i < j.length(); i++){
-                Student cs142 = createStudent(j.getJSONObject(i).getJSONObject("cse142"));
-                Student cs143 = createStudent(j.getJSONObject(i).getJSONObject("cse143"));
+            JSONObject totalFile = new JSONObject(JSON);
+            JSONArray allStudents = totalFile.getJSONArray("all_students");
+            for (int i = 0; i < allStudents.length(); i++) {
+                Student cs142 = createStudent(allStudents.getJSONObject(i).getJSONObject("142"));
+                Student cs143 = createStudent(allStudents.getJSONObject(i).getJSONObject("143"));
                 List<Student> bothPerformances = new ArrayList<Student>();
                 bothPerformances.add(cs142);
                 bothPerformances.add(cs143);
-                twoQuarterStudents.put(cs142.getCode(),bothPerformances);
+                twoQuarterStudents.put(cs142.getCode(), bothPerformances);
             }
-        } catch(JSONException e){
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public Map<Integer, Student> getMap(){
+    public Map<Integer, Student> getSingleQuarterMap() {
         return allStudents;
     }
 
-    private String readFile(File JSONFile){
+    public Map<Integer, List<Student>> getTwoQuarterMap() {
+        return twoQuarterStudents;
+    }
+
+    private String readFile(File JSONFile) {
         StringBuilder b = new StringBuilder();
-        try{
+        try {
             Scanner s = new Scanner(JSONFile);
-            while(s.hasNext()){
+            while (s.hasNext()) {
                 b.append(s.next());
             }
-        } catch(FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         return b.toString();
     }
 
-    private Student createStudent(JSONObject student){
-        try{
+    private Student createStudent(JSONObject student) {
+        try {
             int code = student.getInt("code");
             double homework = student.getDouble("homework");
             int midterm = student.getInt("midterm");
-            int finalExam = student.getInt("final");
-            double total = student.getDouble("total");
+            int finalExam = student.getInt("final_exam");
+            double total = student.getDouble("total_score");
             double grade = student.getDouble("grade");
             return new Student(code, homework, midterm, finalExam, total, grade);
-        } catch(JSONException e){
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return null;

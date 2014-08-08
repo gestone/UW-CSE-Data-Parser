@@ -25,6 +25,10 @@ public class CSEData {
     private String fileTitle;
     private String year;
 
+    // Two Quarter fields
+    private Student[] cse142;
+    private Student[] cse143;
+
     /**
      * @param spreadSheet
      */
@@ -35,50 +39,88 @@ public class CSEData {
         createDataMap(spreadSheet);
     }
 
-    /**
-     *
-     * @param cse143Data
-     */
-    public void correlateTwoQuarters(CSEData cse143Data){
-        Map<Integer, List<Student>> intersect = constructIntersectMap(cse143Data);
-        Student[] cse142 = new Student[intersect.size()];
-        Student[] cse143 = new Student[intersect.size()];
+    public CSEData(Map<Integer, Student> processedStudents) {
+        allData = processedStudents;
+        fileTitle = "none";
+        year = "none";
+    }
+
+
+    public void processOneQuarter(List<Action> actions) {
+        for (Action a : actions) {
+            switch (a) {
+                case GRAPH: {
+                    graphGradeData();
+                    break;
+                }
+                case PERCENTAGE_DISTRIBUTION: {
+                    getGradeDistribution();
+                    break;
+                }
+                case PARSE: {
+                    writeSingleQuarterToJSON();
+                    break;
+                }
+            }
+        }
+    }
+
+    public void processTwoQuarters(CSEData cse143Data, List<Action> actions) {
+        constructStudents(constructIntersectMap(cse143Data));
+        for (Action a : actions) {
+            switch (a) {
+                case CORRELATE: {
+                    processCorrelations(cse143Data);
+                    break;
+                }
+                case GRAPH_GRADE_COMPARSION: {
+                    graphCorrelationGradesTwoQuarters(cse143Data);
+                    break;
+                }
+                case PARSE: {
+                    writeBothQuartersToJSON(cse143Data);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void constructStudents(Map<Integer, List<Student>> intersect) {
+        cse142 = new Student[intersect.size()];
+        cse143 = new Student[intersect.size()];
         int index = 0;
-        for(Integer code : intersect.keySet()){
+        for (Integer code : intersect.keySet()) {
             List<Student> studentPerformance = intersect.get(code);
             cse142[index] = studentPerformance.get(AppConstant.CSE_142);
             cse143[index] = studentPerformance.get(AppConstant.CSE_143);
             index++;
         }
-        processCorrelations(cse142, cse143, cse143Data);
-        if(Arrays.asList(AppConstant.PROCESSING_TYPES).contains(Action.PARSE)){
-            twoQuartersToJSON(cse142, cse143, cse143Data);
-        }
-        if(Arrays.asList(AppConstant.PROCESSING_TYPES).contains(Action.GRAPH_GRADE_COMPARSION)){
-            graphCorrelationGradesTwoQuarters(cse142, cse143, cse143Data);
-        }
     }
 
-    private void graphCorrelationGradesTwoQuarters(Student[] cse142, Student[] cse143, CSEData cse143Data){
+    private void graphCorrelationGradesTwoQuarters(CSEData cse143Data) {
         DrawingPanel graph = new DrawingPanel(AppConstant.GRAPH_WIDTH, AppConstant.GRAPH_HEIGHT);
         Graphics g = graph.getGraphics();
-        g.drawString(generateTitle() + " vs. " + cse143Data.generateTitle() + " Scatter Plot",
-                AppConstant.ADJUSTED_GRAPH_WIDTH / 2,
-                AppConstant.TITLE_MARGIN);
+        String title;
+        if (cse143Data.fileTitle.equals("none")) {
+            title = "All Quarter Combined Scatter Plot";
+        } else {
+            title = generateTitle() + " vs. " + cse143Data.generateTitle() + " Scatter Plot";
+        }
+        g.drawString(title, AppConstant.ADJUSTED_GRAPH_WIDTH / 2, AppConstant.TITLE_MARGIN);
         createBothAxis(g);
         createGradeXAxis(g);
         createGradeYAxis(g);
         plotGradePoints(cse142, cse143, g);
         double[] cse142Grades = new double[cse142.length];
         double[] cse143Grades = new double[cse143.length];
-        for(int i = 0; i < cse142.length; i++){
+        for (int i = 0; i < cse142.length; i++) {
             cse142Grades[i] = cse142[i].getGrade();
             cse143Grades[i] = cse143[i].getGrade();
         }
         createLineBestFit(cse142Grades, cse143Grades, g);
     }
 
-    private void createLineBestFit(double[] cse142Grades, double[] cse143Grades, Graphics g){
+    private void createLineBestFit(double[] cse142Grades, double[] cse143Grades, Graphics g) {
         LinearRegressionModel l = new LinearRegressionModel(cse142Grades, cse143Grades);
         l.compute(); // compute coefficients
         double[] coeff = l.getCoefficients();
@@ -90,44 +132,53 @@ public class CSEData {
         int y2 = (int) (AppConstant.Y_LABEL_SPACING * 40 * mx) - (int) (b * AppConstant.Y_LABEL_SPACING);
         g.setColor(Color.BLACK);
         g.drawLine(x1, y1, x2, y2);
-        double roundedMx = MathUtils.roundThreePlaces(coeff[1]);
-        double roundedB = MathUtils.roundThreePlaces(coeff[0]);
+        double roundedMx = MathUtils.roundNPlaces(coeff[1], 2);
+        double roundedB = MathUtils.roundNPlaces(coeff[0], 2);
         g.drawString("y = " + roundedMx + "x " + " + " + roundedB, AppConstant.GRAPH_MARGIN * 2,
                 AppConstant.GRAPH_MARGIN);
-        g.drawString("Pearson's Correlation: " + MathUtils.roundThreePlaces(MathUtils.calculateCorrelation(cse142Grades,
-                cse143Grades)), AppConstant.GRAPH_MARGIN * 2, AppConstant.GRAPH_MARGIN * 2);
+        g.drawString("Pearson's Correlation: " + MathUtils.roundNPlaces(MathUtils.calculateCorrelation(cse142Grades,
+                cse143Grades), 2), AppConstant.GRAPH_MARGIN * 2, AppConstant.GRAPH_MARGIN * 2);
+        g.drawString("Total Students Taking Consecutive Quarters: " + cse142.length, AppConstant.GRAPH_MARGIN * 2,
+                AppConstant.GRAPH_MARGIN * 3);
     }
 
-    private void plotGradePoints(Student[] cse142, Student[] cse143, Graphics g){
+    private void plotGradePoints(Student[] cse142, Student[] cse143, Graphics g) {
         g.setColor(Color.BLACK);
-        for(int i = 0; i < cse142.length; i++){
+        for (int i = 0; i < cse142.length; i++) {
             double cse142Grade = cse142[i].getGrade();
             double cse143Grade = cse143[i].getGrade();
             int instances = 0;
-            for(int j = 0; j < cse142.length; j++){
-                if(cse142[j].getGrade() == cse142Grade && cse143[j].getGrade() == cse143Grade){
+            for (int j = 0; j < cse142.length; j++) {
+                if (cse142[j].getGrade() == cse142Grade && cse143[j].getGrade() == cse143Grade) {
                     instances++;
                 }
             }
-            int xShift =  AppConstant.X_LABEL_SPACING + ((int) (cse142Grade * 10) * AppConstant.X_LABEL_SPACING) + AppConstant.GRAPH_MARGIN;
-            int yShift =  AppConstant.ADJUSTED_GRAPH_HEIGHT - (int) (cse143Grade * 10 * AppConstant.Y_LABEL_SPACING);
+            int xShift = AppConstant.X_LABEL_SPACING + ((int) (cse142Grade * 10) * AppConstant.X_LABEL_SPACING) + AppConstant.GRAPH_MARGIN;
+            int yShift = AppConstant.ADJUSTED_GRAPH_HEIGHT - (int) (cse143Grade * 10 * AppConstant.Y_LABEL_SPACING);
             g.fillOval(xShift, yShift, AppConstant.POINT_SIZE * instances, AppConstant.POINT_SIZE * instances);
         }
     }
 
     /**
-     *
-     * @param cse142
-     * @param cse143
      * @param cse143Data
      */
-    private void processCorrelations(Student[] cse142, Student[] cse143, CSEData cse143Data){
-        checkIfDirExists("CSCorrelationData/", year);
-        String fileName = "CSCorrelationData/" + year + "/" + createCombinedQuarterTitle(cse143Data) + ".txt";
+    private void processCorrelations(CSEData cse143Data) {
+        String fileName;
+        if (cse143Data.fileTitle.equals("none")){
+            fileName = "CSCorrelationData/allcorrelationdata.txt";
+        } else {
+            checkIfDirExists("CSCorrelationData/", year);
+            fileName = "CSCorrelationData/" + year + "/" + createCombinedQuarterTitle(cse143Data) + ".txt";
+        }
         File correlationFile = new File(fileName);
         try {
             PrintStream p = new PrintStream(correlationFile);
-            String header = this.generateTitle() + " and " + cse143Data.generateTitle();
+            String header;
+            if (cse143Data.fileTitle.equals("none")){
+                header = "All Students Correlations";
+            } else {
+                header = this.generateTitle() + " and " + cse143Data.generateTitle();
+            }
             p.println(header);
             p.println("Total students taking consecutive quarters: " + cse142.length);
             p.println();
@@ -136,18 +187,18 @@ public class CSEData {
             System.out.println();
             List<Double[]> decomposedStudent142 = new ArrayList<Double[]>();
             List<Double[]> decomposedStudent143 = new ArrayList<Double[]>();
-            for(int i = 0; i < cse142.length; i++){
+            for (int i = 0; i < cse142.length; i++) {
                 decomposedStudent142.add(cse142[i].getStudentInDoubleArray());
                 decomposedStudent143.add(cse143[i].getStudentInDoubleArray());
             }
             double[] processCSE142 = new double[cse142.length];
             double[] processCSE143 = new double[cse143.length];
-            for(int j = 0; j < AppConstant.TOTAL_CATEGORIES; j++){
-                for(int k = 0; k < decomposedStudent142.size(); k++){
+            for (int j = 0; j < AppConstant.TOTAL_CATEGORIES; j++) {
+                for (int k = 0; k < decomposedStudent142.size(); k++) {
                     processCSE142[k] = decomposedStudent142.get(k)[j];
                     processCSE143[k] = decomposedStudent143.get(k)[j];
                 }
-                if(j != AppConstant.TOTAL_PERCENT){
+                if (j != AppConstant.TOTAL_PERCENT) {
                     String correlationMsg = AppConstant.CATEGORY_TYPES[j] + " correlation: " + MathUtils
                             .calculateCorrelation(processCSE142, processCSE143);
                     System.out.println(correlationMsg);
@@ -158,48 +209,58 @@ public class CSEData {
             p.close();
             System.out.println();
             System.out.println("This information is also available at " + fileName + ".");
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
-
     /**
      *
-     * @param cse142
-     * @param cse143
      */
-    private void twoQuartersToJSON(Student[] cse142, Student[] cse143, CSEData cse143Data){
-        checkIfDirExists("CSDataJSON/ComparingQuarters/", year);
-        String fileName = "CSDataJSON/ComparingQuarters/" + year + "/" + createCombinedQuarterTitle(cse143Data) + ".json";
+    private void writeBothQuartersToJSON(CSEData cse143Data) {
+        String fileName;
+        if (cse143Data.fileTitle.equals("none")){
+            fileName = "CSDataJSON/AllQuarterStats/combinedQuarterStats.json";
+        } else {
+            checkIfDirExists("CSDataJSON/ComparingQuarters/", year);
+            fileName = "CSDataJSON/ComparingQuarters/" + year + "/" + createCombinedQuarterTitle(cse143Data) + ".json";
+        }
         File jsonToWrite = new File(fileName);
-        try{
+        try {
             PrintStream p = new PrintStream(jsonToWrite);
-            JSONArray file = new JSONArray();
-            for(int i = 0; i < cse142.length; i++){
+            JSONObject file = new JSONObject();
+            JSONArray allStudents = new JSONArray();
+            for (int i = 0; i < cse142.length; i++) {
                 JSONObject student = new JSONObject();
                 student.put("142", cse142[i].getJSONObject());
                 student.put("143", cse143[i].getJSONObject());
-                file.put(student);
+                allStudents.put(student);
             }
+            file.put("all_students", allStudents);
+            double[] cse142Grades = new double[cse142.length];
+            double[] cse143Grades = new double[cse143.length];
+            for (int j = 0; j < cse142.length; j++) {
+                cse142Grades[j] = cse142[j].getGrade();
+                cse143Grades[j] = cse143[j].getGrade();
+            }
+            file.put("grade_correlation", MathUtils.calculateCorrelation(cse142Grades, cse143Grades));
             p.println(file.toString());
             p.flush();
             p.close();
-        } catch(JSONException e){
+        } catch (JSONException e) {
             e.printStackTrace();
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("Finished creating JSON! The file is available at " + fileName + ".");
     }
 
     /**
-     *
      * @param cse143Data
      * @return
      */
-    private String createCombinedQuarterTitle(CSEData cse143Data){
+    private String createCombinedQuarterTitle(CSEData cse143Data) {
         String total = "";
         int start142 = fileTitle.indexOf("2"); // 142 end
         int start143 = cse143Data.fileTitle.indexOf("3"); // 143 end
@@ -209,16 +270,14 @@ public class CSEData {
     }
 
 
-
     /**
-     *
      * @param cse143Data
      * @return
      */
-    private Map<Integer, List<Student>> constructIntersectMap(CSEData cse143Data){
+    private Map<Integer, List<Student>> constructIntersectMap(CSEData cse143Data) {
         Map<Integer, List<Student>> intersect = new HashMap<Integer, List<Student>>();
-        for(Integer code : this.allData.keySet()){
-            if(cse143Data.allData.containsKey(code)){
+        for (Integer code : this.allData.keySet()) {
+            if (cse143Data.allData.containsKey(code)) {
                 List<Student> studentPerformance = new ArrayList<Student>();
                 studentPerformance.add(this.allData.get(code));
                 studentPerformance.add(cse143Data.allData.get(code));
@@ -231,7 +290,7 @@ public class CSEData {
     /**
      * Creates a bar graph representing the distribution of grades given a single quarter.
      */
-    public void graphGradeData() {
+    private void graphGradeData() {
         DrawingPanel graph = new DrawingPanel(AppConstant.GRAPH_WIDTH, AppConstant.GRAPH_HEIGHT);
         Graphics g = graph.getGraphics();
         int[] grades = getGradeFrequencies();
@@ -244,27 +303,28 @@ public class CSEData {
      * Prints out both to the console and to a text file located in the CSGradeDistributionData directory statistics
      * about the grade distribution given a single quarter.
      */
-    public void getGradeDistribution() {
+    private void getGradeDistribution() {
         int[] gradeFreq = getGradeFrequencies();
         int totalStudents = getTotalStudents(gradeFreq);
         String fileName = fileTitle.substring(0, fileTitle.length() - 4) + "gradestats.txt";
         checkIfDirExists("CSGradeDistributionData/", year);
         File gradeDistribution = new File("CSGradeDistributionData/" + year + "/" + fileName);
+        Map<Double, Double> cutoffs = findGradeCutoffs();
         try {
             PrintStream gradeFile = new PrintStream(gradeDistribution);
             System.out.println(generateTitle());
             gradeFile.println(generateTitle());
             System.out.println("Total Students: " + totalStudents);
             gradeFile.println("Total Students: " + totalStudents);
-            for(int i = 40; i >= 0; i--){
+            for (int i = 40; i >= 0; i--) {
                 double percentage = gradeFreq[i] * 1.0 / totalStudents * 100;
-                System.out.println(i / 10.0 + ": " + Math.round(percentage * 100) / 100.0 + "% (" + gradeFreq[i] + " " +
-                        "students)");
-                gradeFile.println(i / 10.0 + ": " + Math.round(percentage * 100) / 100.0 + "% (" + gradeFreq[i] + " " +
-                        "students)");
+                System.out.println(cutoffs.get(i / 10.0) + "% cutoff for a " + (i / 10.0) + ":      " + Math.round
+                        (percentage * 100) / 100.0 + "% (" + gradeFreq[i] + " students)");
+                gradeFile.print(cutoffs.get(i / 10.0) + "% cutoff for a " + (i / 10.0) + ":      " + Math.round(percentage *
+                        100) / 100.0 + "% (" + gradeFreq[i] + " students)");
             }
             System.out.println("This information is also available at " + gradeDistribution.getPath() + ".");
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -272,71 +332,65 @@ public class CSEData {
     /**
      *
      */
-    public void writeSingleQuarterToJSON() {
+    private void writeSingleQuarterToJSON() {
         String fileName = fileTitle.substring(0, fileTitle.length() - 4) + ".json";
         checkIfDirExists("CSDataJSON/SingleQuarter", year);
         File jsonToWrite = new File("CSDataJSON/SingleQuarter/" + year + "/" + fileName);
-        try{
+        try {
             PrintStream printToWrite = new PrintStream(jsonToWrite);
             JSONObject jsonFile = new JSONObject();
             JSONArray allStudents = new JSONArray();
+            JSONArray gradeCutoffs = new JSONArray();
             jsonFile.put("students", allStudents);
-            for(Integer i : allData.keySet()){
+            jsonFile.put("grade_cutoffs", gradeCutoffs);
+            for (Integer i : allData.keySet()) {
                 allStudents.put(allData.get(i).getJSONObject());
+            }
+            Map<Double, Double> cutoffs = findGradeCutoffs();
+            int[] frequencies = getGradeFrequencies();
+            int totalStudents = getTotalStudents(frequencies);
+            for (int i = 40; i >= 0; i--) {
+                JSONObject grade = new JSONObject();
+                grade.put(i / 10.0 + "", cutoffs.get(i / 10.0));
+                double percentage = (1.0 * frequencies[i]) / totalStudents * 100;
+                grade.put("percent", MathUtils.roundNPlaces(percentage, 2));
+                gradeCutoffs.put(grade);
             }
             printToWrite.println(jsonFile.toString());
             printToWrite.flush();
             printToWrite.close();
-        } catch(JSONException e){
+        } catch (JSONException e) {
             e.printStackTrace();
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("Finished writing to JSON! The file is available at " + jsonToWrite.getPath() + ".");
     }
 
-    public void findGradeCutoffs() {
+    private Map<Double, Double> findGradeCutoffs() {
         List<Student> allStudents = new ArrayList<Student>();
-        for (Integer code : allData.keySet()){
+        for (Integer code : allData.keySet()) {
             allStudents.add(allData.get(code));
         }
         Collections.sort(allStudents);
         double[] cutoffs = new double[41];
         double cur = allStudents.get(0).getGrade();
-        for (int i = 0; i < allStudents.size() - 1; i++){
+        for (int i = 0; i < allStudents.size() - 1; i++) {
             double nextGrade = allStudents.get(i + 1).getGrade();
-            if(cur > nextGrade){
-                cutoffs[(int) (cur * 10)] = allStudents.get(i).getTotalScore();
+            if (cur > nextGrade) {
+                cutoffs[(int) (cur * 10)] = allStudents.get(i + 1).getTotalScore();
                 cur = nextGrade;
             }
         }
         Map<Double, Double> gradeMapping = new TreeMap<Double, Double>();
-        for (int j = 0; j <= 40; j++){
+        for (int j = 0; j <= 40; j++) {
             gradeMapping.put(j / 10.0, cutoffs[j]);
         }
-        System.out.println(gradeMapping);
-    }
-
-    private double[] reverse(double[] data) {
-        int left = 0;
-        int right = data.length - 1;
-
-        while( left < right ) {
-            // swap the values at the left and right indices
-            double temp = data[left];
-            data[left] = data[right];
-            data[right] = temp;
-
-            // move the left and right index pointers in toward the center
-            left++;
-            right--;
-        }
-        return data;
+        return gradeMapping;
     }
 
 
     /**
-     *
      * @param g
      */
     private void createSingleGraphAxis(Graphics g, int frequencyTimes) {
@@ -345,7 +399,7 @@ public class CSEData {
         createFrequencyYAxis(g, frequencyTimes);
     }
 
-    private void createGradeXAxis(Graphics g){
+    private void createGradeXAxis(Graphics g) {
         int labelYPos = AppConstant.ADJUSTED_GRAPH_HEIGHT + AppConstant.LABEL_Y_MARGIN;
         for (int i = 0; i <= 40; i++) { // 0.0 to 4.0
             int labelXPos = AppConstant.GRAPH_MARGIN + (i * AppConstant.X_LABEL_SPACING) + AppConstant.LABEL_X_MARGIN;
@@ -353,37 +407,36 @@ public class CSEData {
         }
     }
 
-    private void createGradeYAxis(Graphics g){
+    private void createGradeYAxis(Graphics g) {
         int labelXPos = AppConstant.LABEL_Y_MARGIN;
-        for(int i = 0; i <= 40; i++){
+        for (int i = 0; i <= 40; i++) {
             int labelYPos = AppConstant.ADJUSTED_GRAPH_HEIGHT - (i * AppConstant.Y_LABEL_SPACING);
             g.drawString((i * 1.0) / 10 + "", labelXPos, labelYPos);
         }
     }
 
-    private void createBothAxis(Graphics g){
+    private void createBothAxis(Graphics g) {
         g.setColor(Color.BLACK);
         g.drawLine(AppConstant.GRAPH_MARGIN, 0, AppConstant.GRAPH_MARGIN, AppConstant.ADJUSTED_GRAPH_HEIGHT);
         g.drawLine(AppConstant.GRAPH_MARGIN, AppConstant.ADJUSTED_GRAPH_HEIGHT, AppConstant.GRAPH_WIDTH,
                 AppConstant.ADJUSTED_GRAPH_HEIGHT);
     }
 
-    private void createFrequencyYAxis(Graphics g, int frequencyTimes){
+    private void createFrequencyYAxis(Graphics g, int frequencyTimes) {
         for (int i = 0; i <= frequencyTimes; i++) {
             g.drawString(i * 5 + "", AppConstant.GRAPH_MARGIN - AppConstant.LABEL_X_MARGIN,
-                    AppConstant.ADJUSTED_GRAPH_HEIGHT - (AppConstant.Y_LABEL_SPACING * i));
+                    AppConstant.ADJUSTED_GRAPH_HEIGHT - (AppConstant.ADJUSTED_GRAPH_HEIGHT / frequencyTimes * i));
         }
     }
 
     /**
-     *
      * @param grades
      * @return
      */
-    private int findMaxFrequency(int[] grades){
+    private int findMaxFrequency(int[] grades) {
         int mostFreqGrade = 0;
-        for(int i = 0; i < grades.length; i++){
-            if(mostFreqGrade < grades[i]){
+        for (int i = 0; i < grades.length; i++) {
+            if (mostFreqGrade < grades[i]) {
                 mostFreqGrade = grades[i];
             }
         }
@@ -391,15 +444,14 @@ public class CSEData {
     }
 
     /**
-     *
      * @param g
      * @param grades
      * @param frequencyTimes
      */
-    private void graphData(Graphics g, int[] grades, int frequencyTimes){
+    private void graphData(Graphics g, int[] grades, int frequencyTimes) {
         int xMargin = AppConstant.ADJUSTED_GRAPH_WIDTH / 41;
         int pixelsPerStudent = AppConstant.ADJUSTED_GRAPH_HEIGHT / (frequencyTimes * 5);
-        for(int i = 0; i < grades.length; i++){
+        for (int i = 0; i < grades.length; i++) {
             int xPos = AppConstant.GRAPH_MARGIN + (i * xMargin) + AppConstant.LABEL_X_MARGIN / 2;
             int yPos = AppConstant.ADJUSTED_GRAPH_HEIGHT - pixelsPerStudent * grades[i];
             int totalPixels = pixelsPerStudent * grades[i];
@@ -408,7 +460,7 @@ public class CSEData {
             g.setColor(Color.WHITE);
             g.drawLine(xPos, AppConstant.ADJUSTED_GRAPH_HEIGHT - 1, xPos, AppConstant.ADJUSTED_GRAPH_HEIGHT - totalPixels);
             g.setColor(Color.BLACK);
-            if(grades[i] != 0){
+            if (grades[i] != 0) {
                 g.drawString(grades[i] + "", xPos + AppConstant.LABEL_X_MARGIN / 2,
                         yPos + pixelsPerStudent / 2 * grades[i]);
             }
@@ -419,14 +471,13 @@ public class CSEData {
     }
 
     /**
-     *
      * @return
      */
-    private String generateTitle(){
+    private String generateTitle() {
         String title = fileTitle.substring(0, 3).toUpperCase() + " " + fileTitle.substring(3,
                 6) + ": " + fileTitle.substring(6, 7).toUpperCase();
         int i = 7;
-        while(Character.isLetter(fileTitle.charAt(i))){
+        while (Character.isLetter(fileTitle.charAt(i))) {
             title += fileTitle.charAt(i);
             i++;
         }
@@ -435,13 +486,12 @@ public class CSEData {
     }
 
     /**
-     *
      * @param grades
      * @return
      */
-    private int getTotalStudents(int[] grades){
+    private int getTotalStudents(int[] grades) {
         int total = 0;
-        for(Integer i : grades){
+        for (Integer i : grades) {
             total += i;
         }
         return total;
@@ -449,7 +499,6 @@ public class CSEData {
 
 
     /**
-     *
      * @return
      */
     private int[] getGradeFrequencies() {
@@ -535,19 +584,19 @@ public class CSEData {
         int index = 0;
         while (processCategories.hasNext()) {
             String entry = processCategories.next();
-            if (entry.equals("weekly %")) {
+            if (entry.toLowerCase().equals("weekly %")) {
                 categoryIndex[AppConstant.HOMEWORK] = index;
             }
-            if (entry.contains("mid")) {
+            if (entry.toLowerCase().contains("mid")) {
                 categoryIndex[AppConstant.MIDTERM] = index;
             }
-            if (entry.contains("fin")) {
+            if (entry.toLowerCase().contains("fin")) {
                 categoryIndex[AppConstant.FINAL] = index;
             }
-            if (entry.equals("total")) {
+            if (entry.toLowerCase().equals("total")) {
                 categoryIndex[AppConstant.TOTAL_PERCENT] = index;
             }
-            if (entry.equals("grade")) {
+            if (entry.toLowerCase().equals("grade")) {
                 categoryIndex[AppConstant.GRADE] = index;
             }
             index++;
@@ -556,19 +605,18 @@ public class CSEData {
     }
 
     /**
-     *
      * @param dir
      * @param year
      */
-    private void checkIfDirExists(String dir, String year){
+    private void checkIfDirExists(String dir, String year) {
         File completeDir[] = new File(dir).listFiles();
         boolean dirExists = false;
-        for(File yearDir : completeDir){
-            if(yearDir.getName().equals(year)){
+        for (File yearDir : completeDir) {
+            if (yearDir.getName().equals(year)) {
                 dirExists = true;
             }
         }
-        if(!dirExists){
+        if (!dirExists) {
             File yearDir = new File(dir + "/" + year);
             yearDir.mkdir();
         }
