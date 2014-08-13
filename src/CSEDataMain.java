@@ -20,7 +20,7 @@ public class CSEDataMain {
         Scanner userInput = new Scanner(System.in);
         String year = getYear(userInput);
         if (yesTo("Would you like to process only one file? ", userInput)){
-            actionsToProcess = getSingleQuarterActions(userInput, year);
+            actionsToProcess = getSingleQuarterActions(userInput);
             quarterOne = getSingleFile(userInput, year, "");
             CSEData quarter = new CSEData(quarterOne, year);
             quarter.processOneQuarter(actionsToProcess);
@@ -30,7 +30,7 @@ public class CSEDataMain {
                 System.out.println();
                 year = getYear(userInput);
             }
-            actionsToProcess = getTwoQuarterActions(userInput, year);
+            actionsToProcess = getTwoQuarterActions(userInput);
             System.out.println();
             System.out.println("Choose a CSE 142 quarter.");
             System.out.println();
@@ -98,11 +98,11 @@ public class CSEDataMain {
     }
 
     /**
-     *
-     * @param userInput
-     * @param year
-     * @param cseQuarter
-     * @return
+     * Gets a single file when the user is prompted the options from the directory.
+     * @param userInput  The scanner linked to console input.
+     * @param year       The year of the directory to analyze.
+     * @param cseQuarter Which type of quarter needs to be retrieved.
+     * @return           A file with the given type of CSE quarter (either CSE 142 or CSE 143)
      */
     public static File getSingleFile(Scanner userInput, String year, String cseQuarter){
         File[] dir = new File(AppConstant.CS_RAW_DATA_DIR + year).listFiles();
@@ -130,11 +130,12 @@ public class CSEDataMain {
     }
 
     /**
-     *
-     * @param userInput
-     * @return
+     * Gets a list of actions to be performed on a single quarter's worth of data.
+     * @param userInput The scanner linked to console input.
+     * @return          A list of actions that represents what the user wants to have done on the single quarter's
+     *                  worth of data.
      */
-    public static List<Action> getSingleQuarterActions(Scanner userInput, String year){
+    public static List<Action> getSingleQuarterActions(Scanner userInput){
         List<Action> actionsToPerform = new ArrayList<Action>();
             if (yesTo("Would you like to parse the data into a JSON File?", userInput)) {
                 actionsToPerform.add(Action.PARSE);
@@ -149,7 +150,13 @@ public class CSEDataMain {
         return actionsToPerform;
     }
 
-    public static List<Action> getTwoQuarterActions(Scanner userInput, String year){
+    /**
+     * Gets a list of actions to be performed on two quarters' worth of data.
+     * @param userInput The scanner linked to console input.
+     * @return          A list of actions that represents what the user wants to have done on the two quarter's worth
+     *                  of data.
+     */
+    public static List<Action> getTwoQuarterActions(Scanner userInput){
         List<Action> actionsToPerform = new ArrayList<Action>();
         if (yesTo("Would you like to parse the repeat students' data into a JSON file?", userInput)){
             actionsToPerform.add(Action.PARSE);
@@ -163,6 +170,12 @@ public class CSEDataMain {
         return actionsToPerform;
     }
 
+    /**
+     * Used to ensure that the user will respond y/n to a given question when gathering Actions.
+     * @param prompt     The question to ask to the user.
+     * @param userInput  The scanner linked to console input.
+     * @return           A boolean representing whether or not the user said y or n, true if so false otherwise.
+     */
     public static boolean yesTo(String prompt, Scanner userInput) {
         System.out.print(prompt + " (y/n)? ");
         String response = userInput.next().trim().toLowerCase();
