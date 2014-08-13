@@ -206,7 +206,7 @@ public class CSEData {
 
     /**
      * Prints out correlations both to a file and the console.
-     * @param cse143Data
+     * @param cse143Data The other CSE 143 data to be compared to.
      */
     private void processCorrelations(CSEData cse143Data) {
         String fileName;
@@ -226,7 +226,7 @@ public class CSEData {
                 header = this.generateTitle() + " and " + cse143Data.generateTitle();
             }
             p.println(header);
-            p.println("Total students taking consecutive quarters: " + cse142.length);
+            p.println("Total students taking coinnsecutive quarters: " + cse142.length);
             p.println();
             System.out.println(header);
             System.out.println("Total students taking consecutive quarters: " + cse142.length);
@@ -262,7 +262,11 @@ public class CSEData {
 
 
     /**
-     *
+     * Writes both quarters to an external file in JSON format. The resulting file will be stored in the CSDataJSON
+     * directory in either AllQuarterStats or ComparingQuarters depending on whether or not this object was constructed
+     * from JSON or from the raw CS spreadsheet file. The students' 142 and 143 performances will both be written in to
+     * JSON format.
+     * @param cse143Data The other CSE 143 to be compared to.
      */
     private void writeBothQuartersToJSON(CSEData cse143Data) {
         String fileName;
@@ -303,8 +307,9 @@ public class CSEData {
     }
 
     /**
-     * @param cse143Data
-     * @return
+     * Creates a combined quarter title for file naming purposes.
+     * @param cse143Data The other CSE 143 to be compared to.
+     * @return           A string representing the quarter title for the file or graph name.
      */
     private String createCombinedQuarterTitle(CSEData cse143Data) {
         String total = "";
@@ -317,8 +322,10 @@ public class CSEData {
 
 
     /**
-     * @param cse143Data
-     * @return
+     * Finds the intersection of students that took consecutive quarters in 142 and 143.
+     * @param cse143Data The other CSE 143 data to be compared to.
+     * @return           A Map from integer to a list of students representing the code to a list of the same student
+     *                   and their performance in 142 and 143.
      */
     private Map<Integer, List<Student>> constructIntersectMap(CSEData cse143Data) {
         Map<Integer, List<Student>> intersect = new HashMap<Integer, List<Student>>();
@@ -376,7 +383,8 @@ public class CSEData {
     }
 
     /**
-     *
+     * Writes a single quarter out in JSON format to a text file. The resulting text file is stored in the CSDataJSON
+     * directory under SingleQuarter.
      */
     private void writeSingleQuarterToJSON() {
         String fileName = fileTitle.substring(0, fileTitle.length() - 4) + ".json";
@@ -413,6 +421,10 @@ public class CSEData {
         System.out.println("Finished writing to JSON! The file is available at " + jsonToWrite.getPath() + ".");
     }
 
+    /**
+     * Finds the grade cutoffs for each of the grade points (0.0 - 4.0),
+     * @return A Map of grades to grade cutoffs.
+     */
     private Map<Double, Double> findGradeCutoffs() {
         List<Student> allStudents = new ArrayList<Student>();
         for (Integer code : allData.keySet()) {
@@ -437,7 +449,10 @@ public class CSEData {
 
 
     /**
-     * @param g
+     * Creates a single quarter's graph's axis. Lines the x axis with grades and the y axis with number of students in
+     * increments of 5 up until the max.
+     * @param g              The graphics used to draw the axis and numbers.
+     * @param frequencyTimes How many increments of 5 need to be placed on the graph.
      */
     private void createSingleGraphAxis(Graphics g, int frequencyTimes) {
         createBothAxis(g);
@@ -445,6 +460,10 @@ public class CSEData {
         createFrequencyYAxis(g, frequencyTimes);
     }
 
+    /**
+     * Creates the grade x axis from 0.0 starting on the left to 4.0 going to the right.
+     * @param g The graphics used to draw the grades.
+     */
     private void createGradeXAxis(Graphics g) {
         int labelYPos = AppConstant.ADJUSTED_GRAPH_HEIGHT + AppConstant.LABEL_Y_MARGIN;
         for (int i = 0; i <= 40; i++) { // 0.0 to 4.0
@@ -453,6 +472,10 @@ public class CSEData {
         }
     }
 
+    /**
+     * Creates the grade y axis from 0.0 starting from the bottom to 4.0 going to the top of the graph.
+     * @param g The graphics used to draw the grades.
+     */
     private void createGradeYAxis(Graphics g) {
         int labelXPos = AppConstant.LABEL_Y_MARGIN;
         for (int i = 0; i <= 40; i++) {
@@ -461,6 +484,10 @@ public class CSEData {
         }
     }
 
+    /**
+     * Creates the lines to make up both of the axises of any given graph.
+     * @param g The graphics used to draw the lines.
+     */
     private void createBothAxis(Graphics g) {
         g.setColor(Color.BLACK);
         g.drawLine(AppConstant.GRAPH_MARGIN, 0, AppConstant.GRAPH_MARGIN, AppConstant.ADJUSTED_GRAPH_HEIGHT);
@@ -468,6 +495,11 @@ public class CSEData {
                 AppConstant.ADJUSTED_GRAPH_HEIGHT);
     }
 
+    /**
+     * Creates the frequency y axis incremented by 5s.
+     * @param g              The graphics used to draw the numbers.
+     * @param frequencyTimes The amount of times that increments of 5 need to be drawn.
+     */
     private void createFrequencyYAxis(Graphics g, int frequencyTimes) {
         for (int i = 0; i <= frequencyTimes; i++) {
             g.drawString(i * 5 + "", AppConstant.GRAPH_MARGIN - AppConstant.LABEL_X_MARGIN,
@@ -476,8 +508,9 @@ public class CSEData {
     }
 
     /**
-     * @param grades
-     * @return
+     * Finds the maximum frequency in an array of grades.
+     * @param grades The frequency of grades.
+     * @return       The maximum frequency in the array of frequency of grades.
      */
     private int findMaxFrequency(int[] grades) {
         int mostFreqGrade = 0;
@@ -490,9 +523,11 @@ public class CSEData {
     }
 
     /**
-     * @param g
-     * @param grades
-     * @param frequencyTimes
+     * Graphs the frequency of grades of students in one quarter. Displays the grade (0.0 - 4.0) on the x axis along with
+     * the frequency of that particular grade on the y axis. All of this is displayed in a bar graph.
+     * @param g              The graphics used to draw the axis and numbers.
+     * @param grades         The frequency of grades.
+     * @param frequencyTimes The amount of times that increments of 5 need to be drawn.
      */
     private void graphData(Graphics g, int[] grades, int frequencyTimes) {
         int xMargin = AppConstant.ADJUSTED_GRAPH_WIDTH / 41;
@@ -517,7 +552,9 @@ public class CSEData {
     }
 
     /**
-     * @return
+     * Generates a title for the graph. Displays the course (either CSE 142 or CSE 143) along with the year and quarter
+     * it was taken in.
+     * @return A String representing the title of the graph.
      */
     private String generateTitle() {
         String title = fileTitle.substring(0, 3).toUpperCase() + " " + fileTitle.substring(3,
@@ -532,8 +569,9 @@ public class CSEData {
     }
 
     /**
-     * @param grades
-     * @return
+     * Gets the total number of students within a single quarter.
+     * @param grades The frequency of student grades.
+     * @return An integer representing the total number of students that took that class in that particular quarter.
      */
     private int getTotalStudents(int[] grades) {
         int total = 0;
@@ -545,7 +583,8 @@ public class CSEData {
 
 
     /**
-     * @return
+     * Gets the grade frequencies from Students.
+     * @return An integer array representing the given frequencies for each grade in a single quarter.
      */
     private int[] getGradeFrequencies() {
         int[] frequencies = new int[41]; // 0.0 to 4.0
@@ -558,7 +597,6 @@ public class CSEData {
 
     /**
      * Creates a mapping of data from a Student's code to a Student.
-     *
      * @param spreadSheet The spreadsheet containing the data file.
      */
     private void createDataMap(File spreadSheet) {
@@ -573,7 +611,6 @@ public class CSEData {
 
     /**
      * Processes the File and creates the mapping of data.
-     *
      * @param spreadSheet The spreadsheet containing the data file.
      */
     private void processFile(Scanner spreadSheet) {
@@ -651,8 +688,10 @@ public class CSEData {
     }
 
     /**
-     * @param dir
-     * @param year
+     * Checks if a given directory exists. If it doesn't exist, then a directory with that extension will be created
+     * along with the appropriate year.
+     * @param dir  The directory to be checked.
+     * @param year The year to be checked.
      */
     private void checkIfDirExists(String dir, String year) {
         File completeDir[] = new File(dir).listFiles();

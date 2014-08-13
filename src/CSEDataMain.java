@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- *
+ * Main class for processing CSE raw data. Has the ability to prompt the user to parse either one or two data files,
+ * along with prompting the user with a series of yes/no questions to dictate which actions to perform on analyzing
+ * these data files.
  */
 public class CSEDataMain {
 
@@ -48,9 +50,9 @@ public class CSEDataMain {
 
 
     /**
-     *
-     * @param userInput
-     * @return
+     * Gets the year that the user wants to analyze.
+     * @param userInput The scanner linked to console input.
+     * @return          A String representing the year that the user wants to analyze.
      */
     public static String getYear(Scanner userInput){
         String year = "-1";
@@ -65,6 +67,12 @@ public class CSEDataMain {
         return year;
     }
 
+    /**
+     * Determines whether a directory has both a CSE 142 file and CSE 143 file.
+     * @param year The year of the directory to analyze.
+     * @return A boolean representing whether or not a directory has both a CSE 142 file and a CSE 143 file, true if so
+     * and false if not.
+     */
     public static boolean hasBothQuarters(String year){
         File[] dir = new File(AppConstant.CS_RAW_DATA_DIR + year).listFiles();
         boolean cse142 = false;
@@ -81,14 +89,21 @@ public class CSEDataMain {
      }
 
     /**
-     *
-     * @param year
-     * @return
+     * Figures out if the year chosen by the user exists.
+     * @param year The year of the directory to analyze.
+     * @return     A boolean representing if the directory exists, true if so, false if not.
      */
     public static boolean yearChosen(String year){
         return new File(AppConstant.CS_RAW_DATA_DIR + year).exists();
     }
 
+    /**
+     *
+     * @param userInput
+     * @param year
+     * @param cseQuarter
+     * @return
+     */
     public static File getSingleFile(Scanner userInput, String year, String cseQuarter){
         File[] dir = new File(AppConstant.CS_RAW_DATA_DIR + year).listFiles();
         System.out.println("List of files:");
