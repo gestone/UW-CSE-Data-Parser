@@ -1,10 +1,8 @@
 package Internal.Math;
 
+
 /**
- * Created by Justin on 7/29/2014.
- */
-/**
- * A RegressionModel that fits a straight line to a data set
+ * A RegressionModel that fits a straight line to a data set.
  */
 public class LinearRegressionModel  {
 
@@ -61,16 +59,5 @@ public class LinearRegressionModel  {
         // set the computed flag to true after we have calculated the coefficients
     }
 
-    /**
-     * Evaluate the computed model at a certain point
-     *
-     * @param x
-     *          The point to evaluate at
-     * @return The value of the fitted straight line at the point x
-     *
-     */
-    public double evaluateAt(double x) {
-        return a + b * x;
-    }
 }
 

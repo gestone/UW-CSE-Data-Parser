@@ -24,10 +24,13 @@ import java.util.*;
 public class ProcessAllFilesMain {
 
     public static void main(String[] args) {
-        processAllSingleFiles();
+//        processAllSingleFiles();
 //        processComparisionJSON();
     }
 
+    /**
+     * Calculates the average, min, and max cutoffs and average grade distributions for all processed quarters.
+     */
     public static void calculateCutoffsAndDistribution() {
         try {
             JSONObject file = new JSONObject();
@@ -74,6 +77,11 @@ public class ProcessAllFilesMain {
         }
     }
 
+    /**
+     * Finds the average of all the elements in a list of doubles.
+     * @param list  The list of doubles containing either cutoffs or percentage distributions.
+     * @return      A double representing the average of all of the elements.
+     */
     public static double findAverage(List<Double> list){
         double total = 0;
         for (Double d : list){
@@ -82,6 +90,12 @@ public class ProcessAllFilesMain {
         return MathUtils.roundNPlaces(total / list.size(), 2);
     }
 
+    /**
+     * Groups all CSE 142 and CSE 143 cutoffs and percentages in a single map to be analyzed.
+     * @param quarterType The specified quarter that is to be analyzed, either CSE 142 or CSE 143.
+     * @param isPercent   Whether or not percentages are being calculated.
+     * @return            A map from double to a list of doubles representing
+     */
     public static Map<Double, List<Double>> getMapping(String quarterType, boolean isPercent) {
         Map<Double, List<Double>> cutOffs = new TreeMap<Double, List<Double>>();
         List<File> cse142Files = getCSFiles(quarterType);
@@ -112,6 +126,11 @@ public class ProcessAllFilesMain {
         return cutOffs;
     }
 
+    /**
+     * Gets all of the CS JSON files of a given quarter.
+     * @param quarter The quarter to be obtained from the CS JSON files, either CSE 142 or CSE 143.
+     * @return        A list of Files representing all of the CS files of a given quarter.
+     */
     public static List<File> getCSFiles(String quarter) {
         List<File> csFiles = new ArrayList<File>();
         File[] allYears = new File(AppConstant.CS_JSON_DATA_DIR + "SingleQuarter").listFiles();
@@ -126,6 +145,12 @@ public class ProcessAllFilesMain {
         return csFiles;
     }
 
+    /**
+     * Reads a file in given its path.
+     * @param file          The path of the file.
+     * @return              A String representing the contents of the file.
+     * @throws IOException  If the FileReader is malformed.
+     */
     public static String readFile(String file) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line = null;
@@ -141,7 +166,8 @@ public class ProcessAllFilesMain {
     }
 
     /**
-     * Processes all single quarter files by generating
+     * Processes all single quarter files by generating a JSON file with calculated cutoff minimums, maximums, and
+     * averages, and average grade distributions.
      */
     public static void processAllSingleFiles() {
         List<Action> parse = new ArrayList<Action>();
@@ -160,9 +186,10 @@ public class ProcessAllFilesMain {
     }
 
     /**
-     *
+     * Processes all comparison JSON files and combines them into one, correlates, and graphs a scatter plot of all of
+     * the grade comparisons.
      */
-    public static void processComparisionJSON() {
+    public static void processComparisonJSON() {
         Map<Integer, List<Student>> allStudents = new HashMap<Integer, List<Student>>();
         File[] compareDir = new File(AppConstant.CS_JSON_DATA_DIR + "ComparingQuarters").listFiles();
         for (File year : compareDir) {

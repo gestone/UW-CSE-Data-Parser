@@ -2,7 +2,7 @@ package Constants;
 
 
 /**
- * Created by Justin on 7/17/2014.
+ * Represents the various actions that can be performed in analyzing the single quarter or comparing quarter data.
  */
 public enum Action {
 

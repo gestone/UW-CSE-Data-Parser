@@ -1,9 +1,13 @@
 package Constants;
 
 /**
- * Created by Justin on 7/19/2014.
+ * Constants to be used throughout other classes for readability.
  */
 public class AppConstant {
+
+    private AppConstant(){
+
+    }
 
     /** All CSEDataMain Constants */
 

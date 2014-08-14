@@ -68,10 +68,10 @@ public class MathUtils {
     }
 
     /**
-     *
-     * @param categoryOne
-     * @param categoryTwo
-     * @return
+     * Calculates the Pearson correlation between two categories.
+     * @param categoryOne The first category to be processed that lies on the x-axis of a scatter plot.
+     * @param categoryTwo The second category to be processed that lies on the y-axis of a scatter plot.
+     * @return            A correlation value between 0 and 1 representing the correlation between the two sets of data.
      */
     public static double calculateCorrelation(double[] categoryOne, double[] categoryTwo){
         double cse142Avg = 0;
@@ -105,9 +105,10 @@ public class MathUtils {
     }
 
     /**
-     *
-     * @param number
-     * @return
+     * Rounds a number to n places.
+     * @param number  The number to be rounded.
+     * @param n       The number of places to round the given number to.
+     * @return        The rounded number.
      */
     public static double roundNPlaces(double number, int n){
         return (double) Math.round(number * Math.pow(10, n)) / Math.pow(10, n);
