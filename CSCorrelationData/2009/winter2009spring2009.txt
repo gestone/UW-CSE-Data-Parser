@@ -1,0 +1,7 @@
+CSE 142: Winter 2009 and CSE 143: Spring 2009
+Total students taking consecutive quarters: 197
+
+Homework correlation: 0.5324922148711888
+Midterm correlation: 0.3750365806217875
+Final correlation: 0.4396785643953819
+Grade correlation: 0.5366905120216992

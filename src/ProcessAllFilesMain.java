@@ -24,8 +24,98 @@ import java.util.*;
 public class ProcessAllFilesMain {
 
     public static void main(String[] args) {
-//        processAllSingleFiles();
-//        processComparisionJSON();
+//        processCutoffSingleQuarterFiles();
+//        processComparisonJSON();
+        combineAndCorrelateSingleQuarterFiles("142");
+        combineAndCorrelateSingleQuarterFiles("143");
+    }
+
+    /**
+     * Processes all comparison JSON files and combines them into one, correlates, and graphs a scatter plot of all of
+     * the grade comparisons.
+     */
+    public static void processComparisonJSON() {
+        Map<Integer, List<Student>> allStudents = new HashMap<Integer, List<Student>>();
+        File[] compareDir = new File(AppConstant.CS_JSON_DATA_DIR + "ComparingQuarters").listFiles();
+        for (File year : compareDir) {
+            File[] compareFile = year.listFiles();
+            CSEDataJSONParser parse = new CSEDataJSONParser();
+            parse.parseTwoQuarterJSON(compareFile[0]);
+            allStudents.putAll(parse.getTwoQuarterMap());
+        }
+        Map<Integer, Student> cse142 = new HashMap<Integer, Student>();
+        Map<Integer, Student> cse143 = new HashMap<Integer, Student>();
+        for (Integer code : allStudents.keySet()) {
+            List<Student> bothQuarters = allStudents.get(code);
+            cse142.put(code, bothQuarters.get(AppConstant.CSE_142));
+            cse143.put(code, bothQuarters.get(AppConstant.CSE_143));
+        }
+        CSEData allCS142 = new CSEData(cse142);
+        CSEData allCS143 = new CSEData(cse143);
+        List<Action> actions = new ArrayList<Action>();
+        actions.add(Action.CORRELATE_TWO_QUARTERS);
+        actions.add(Action.PARSE);
+        actions.add(Action.GRAPH_GRADE_COMPARSION);
+        allCS142.processTwoQuarters(allCS143, actions);
+    }
+
+    /**
+     * Processes all single quarter files by generating a JSON file with calculated cutoff minimums, maximums, and
+     * averages, and average grade distributions.
+     */
+    public static void processCutoffSingleQuarterFiles() {
+        List<Action> parse = new ArrayList<Action>();
+        parse.add(Action.PARSE);
+        File[] csDir = new File(AppConstant.CS_RAW_DATA_DIR).listFiles();
+        for (File year : csDir) {
+            File[] csRawData = year.listFiles();
+            for (File spreadsheet : csRawData) {
+                System.out.println("Processing " + spreadsheet.getName());
+                CSEData rawDataFile = new CSEData(spreadsheet, year.getName());
+                rawDataFile.processOneQuarter(parse);
+            }
+        }
+        calculateCutoffsAndDistribution();
+        System.out.println("Processing complete!");
+    }
+
+    /**
+     * Combines all of the single quarter JSON Files along with correlating homework, midterm,
+     * and final scores against grades.
+     * @param quarter The quarter to be obtained from the CS JSON files, either CSE 142 or CSE 143.
+     */
+    public static void combineAndCorrelateSingleQuarterFiles(String quarter){
+        List<Action> allActions = new ArrayList<Action>();
+        Map<Integer, Student> allStudents = new HashMap<Integer, Student>();
+        CSEDataJSONParser dataParser = new CSEDataJSONParser();
+        File[] csDir = new File(AppConstant.CS_JSON_DATA_DIR + "SingleQuarter").listFiles();
+        for (File year : csDir) {
+            File[] allYears = year.listFiles();
+            for (File jsonFile : allYears) {
+                if (jsonFile.getName().contains(quarter)) {
+                    dataParser.parseSingleQuarterJSON(jsonFile);
+                    allStudents.putAll(dataParser.getSingleQuarterMap());
+                    System.out.println(jsonFile.getName() + "finished being processed!");
+                }
+            }
+        }
+        File allSingleProcessedData = new File(AppConstant.CS_JSON_DATA_DIR + "AllQuarterStats/all_" + quarter + "_" +
+                "students.json");
+        CSEData allData = new CSEData(allStudents, quarter);
+        JSONObject totalFile = new JSONObject();
+        try {
+            totalFile.put("all_students", new JSONObject(allStudents));
+            totalFile.put("correlations", allData.correlateOneQuarter());
+            PrintStream p = new PrintStream(allSingleProcessedData);
+            p.println(totalFile);
+            p.flush();
+            p.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        System.out.println("Processing complete! The file is available at " + allSingleProcessedData.getPath());
     }
 
     /**
@@ -64,7 +154,7 @@ public class ProcessAllFilesMain {
                 cse143.put(cse143GradeData);
             }
             File allSingleProcessedData = new File(AppConstant.CS_JSON_DATA_DIR +
-                    "AllQuarterStats/csesingleprocessedavg.json");
+                    "AllQuarterStats/single_quarter_cutoff_and_distribution.json");
             PrintStream p = new PrintStream(allSingleProcessedData);
             p.print(file.toString());
             p.flush();
@@ -163,55 +253,6 @@ public class ProcessAllFilesMain {
         }
 
         return stringBuilder.toString();
-    }
-
-    /**
-     * Processes all single quarter files by generating a JSON file with calculated cutoff minimums, maximums, and
-     * averages, and average grade distributions.
-     */
-    public static void processAllSingleFiles() {
-        List<Action> parse = new ArrayList<Action>();
-        parse.add(Action.PARSE);
-        File[] csDir = new File(AppConstant.CS_RAW_DATA_DIR).listFiles();
-        for (File year : csDir) {
-            File[] csRawData = year.listFiles();
-            for (File spreadsheet : csRawData) {
-                System.out.println("Processing " + spreadsheet.getName());
-                CSEData rawDataFile = new CSEData(spreadsheet, year.getName());
-                rawDataFile.processOneQuarter(parse);
-            }
-        }
-        calculateCutoffsAndDistribution();
-        System.out.println("Processing complete!");
-    }
-
-    /**
-     * Processes all comparison JSON files and combines them into one, correlates, and graphs a scatter plot of all of
-     * the grade comparisons.
-     */
-    public static void processComparisonJSON() {
-        Map<Integer, List<Student>> allStudents = new HashMap<Integer, List<Student>>();
-        File[] compareDir = new File(AppConstant.CS_JSON_DATA_DIR + "ComparingQuarters").listFiles();
-        for (File year : compareDir) {
-            File[] compareFile = year.listFiles();
-            CSEDataJSONParser parse = new CSEDataJSONParser();
-            parse.parseTwoQuarterJSON(compareFile[0]);
-            allStudents.putAll(parse.getTwoQuarterMap());
-        }
-        Map<Integer, Student> cse142 = new HashMap<Integer, Student>();
-        Map<Integer, Student> cse143 = new HashMap<Integer, Student>();
-        for (Integer code : allStudents.keySet()) {
-            List<Student> bothQuarters = allStudents.get(code);
-            cse142.put(code, bothQuarters.get(AppConstant.CSE_142));
-            cse143.put(code, bothQuarters.get(AppConstant.CSE_143));
-        }
-        CSEData allCS142 = new CSEData(cse142);
-        CSEData allCS143 = new CSEData(cse143);
-        List<Action> actions = new ArrayList<Action>();
-        actions.add(Action.CORRELATE);
-        actions.add(Action.PARSE);
-        actions.add(Action.GRAPH_GRADE_COMPARSION);
-        allCS142.processTwoQuarters(allCS143, actions);
     }
 
 }

@@ -1,0 +1,7 @@
+CSE 142: Winter 2005 and CSE 143: Autumn 2005
+Total students taking consecutive quarters: 40
+
+Homework correlation: 0.0254750498514638
+Midterm correlation: 0.28820649690846856
+Final correlation: 0.16255937111956803
+Grade correlation: 0.13390411631304877

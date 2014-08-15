@@ -60,6 +60,17 @@ public class CSEData {
     }
 
     /**
+     * Constructor for CSEData. Used after a JSON file containing the CS Student data is already processed.
+     * @param processedStudents The already processed students from the JSON file.
+     * @param year              The year that the quarter took place.
+     */
+    public CSEData(Map<Integer, Student> processedStudents, String year) {
+        allData = processedStudents;
+        fileTitle = "none";
+        this.year = year;
+    }
+
+    /**
      * Processes Actions for one quarter to be performed. Options include graphing the grade data,
      * writing out a percentage distribution to a file and the console, and parsing the grade data into a JSON file.
      * @param actions A List of Actions to be performed specified by the user.
@@ -79,6 +90,10 @@ public class CSEData {
                     writeSingleQuarterToJSON();
                     break;
                 }
+                case CORRELATE_ONE_QUARTER: {
+                    correlateOneQuarter();
+                    break;
+                }
             }
         }
     }
@@ -94,7 +109,7 @@ public class CSEData {
         constructStudents(constructIntersectMap(cse143Data));
         for (Action a : actions) {
             switch (a) {
-                case CORRELATE: {
+                case CORRELATE_TWO_QUARTERS: {
                     processCorrelations(cse143Data);
                     break;
                 }
@@ -124,6 +139,55 @@ public class CSEData {
             cse143[index] = studentPerformance.get(AppConstant.CSE_143);
             index++;
         }
+    }
+
+    /**
+     * Correlates homework, midterm, and final scores to the Student's final grade.
+     * @return A JSONObject storing the correlations.
+     */
+    public JSONObject correlateOneQuarter() {
+        JSONObject correlations = new JSONObject();
+        List<Student> allStudents = new ArrayList<Student>();
+        double[] otherCategory = new double[allData.values().size()];
+        double[] grades = new double[allData.values().size()];
+        try {
+            for (Student s : allData.values()) {
+                allStudents.add(s);
+            }
+            for (int i = AppConstant.HOMEWORK; i < AppConstant.TOTAL_PERCENT; i++) {
+                for (int j = 0; j < allStudents.size(); j++) {
+                    otherCategory[j] = allStudents.get(j).getStudentInDoubleArray()[i];
+                    grades[j] = allStudents.get(j).getStudentInDoubleArray()[AppConstant.GRADE];
+                }
+                correlations.put(determineCategory(i), MathUtils.calculateCorrelation(otherCategory, grades));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return correlations;
+    }
+
+    /**
+     * Determines which category a particular index is and converts it to a String.
+     * @param index The index to be converted to a String.
+     * @return      A String representing which category the index maps to.
+     */
+    private String determineCategory(int index) {
+        switch (index) {
+            case 0: {
+                return "homework";
+            }
+            case 1: {
+                return "midterm";
+            }
+            case 2: {
+                return "final";
+            }
+            case 3: {
+                return "total_percent";
+            }
+        }
+        return "";
     }
 
     /**
@@ -554,18 +618,22 @@ public class CSEData {
     /**
      * Generates a title for the graph. Displays the course (either CSE 142 or CSE 143) along with the year and quarter
      * it was taken in.
-     * @return A String representing the title of the graph.
+     * @return A String representing the title of the graph. If there is no file title,
+     *         a simple title with the year incorporated will be returned.
      */
     private String generateTitle() {
-        String title = fileTitle.substring(0, 3).toUpperCase() + " " + fileTitle.substring(3,
-                6) + ": " + fileTitle.substring(6, 7).toUpperCase();
-        int i = 7;
-        while (Character.isLetter(fileTitle.charAt(i))) {
-            title += fileTitle.charAt(i);
-            i++;
+        if (!fileTitle.equals("none")) {
+            String title = fileTitle.substring(0, 3).toUpperCase() + " " + fileTitle.substring(3,
+                    6) + ": " + fileTitle.substring(6, 7).toUpperCase();
+            int i = 7;
+            while (Character.isLetter(fileTitle.charAt(i))) {
+                title += fileTitle.charAt(i);
+                i++;
+            }
+            title += " " + fileTitle.substring(i, i + 4);
+            return title;
         }
-        title += " " + fileTitle.substring(i, i + 4);
-        return title;
+        return "All CSE " + year + " students";
     }
 
     /**
@@ -667,7 +735,7 @@ public class CSEData {
         int index = 0;
         while (processCategories.hasNext()) {
             String entry = processCategories.next();
-            if (entry.toLowerCase().equals("weekly %")) {
+            if (entry.toLowerCase().equals("weekly %") || entry.toLowerCase().equals("homework %")) {
                 categoryIndex[AppConstant.HOMEWORK] = index;
             }
             if (entry.toLowerCase().contains("mid")) {

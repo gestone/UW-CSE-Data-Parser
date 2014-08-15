@@ -147,6 +147,10 @@ public class CSEDataMain {
                             "each grade?", userInput)){
                 actionsToPerform.add(Action.PERCENTAGE_DISTRIBUTION);
             }
+            if (yesTo("Would you like to calculate the correlation between the students' final grade and their " +
+                    "homework, midterm, and final scores?", userInput)) {
+                actionsToPerform.add(Action.CORRELATE_ONE_QUARTER);
+            }
         return actionsToPerform;
     }
 
@@ -165,7 +169,7 @@ public class CSEDataMain {
             actionsToPerform.add(Action.GRAPH_GRADE_COMPARSION);
         }
         if (yesTo("Would you like to correlate the students' CSE 142 grades and CSE 143 grades?", userInput)){
-            actionsToPerform.add(Action.CORRELATE);
+            actionsToPerform.add(Action.CORRELATE_TWO_QUARTERS);
         }
         return actionsToPerform;
     }

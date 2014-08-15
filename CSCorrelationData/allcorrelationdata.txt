@@ -1,5 +1,5 @@
 All Students Correlations
-Total students taking consecutive quarters: 1607
+Total students taking coinnsecutive quarters: 1607
 
 Homework correlation: 0.47663303845732813
 Midterm correlation: 0.4087144087989854

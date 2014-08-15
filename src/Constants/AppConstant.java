@@ -15,7 +15,7 @@ public class AppConstant {
 
     public static final String CS_JSON_DATA_DIR = "CSDataJSON/";
 
-    public static final Action[] PROCESSING_TYPES = {Action.CORRELATE, Action.GRAPH_GRADE_COMPARSION};
+    public static final Action[] PROCESSING_TYPES = {Action.CORRELATE_TWO_QUARTERS, Action.GRAPH_GRADE_COMPARSION};
 
     /** All category types */
     public static final int HOMEWORK = 0;
