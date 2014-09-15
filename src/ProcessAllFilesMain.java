@@ -114,7 +114,6 @@ public class ProcessAllFilesMain {
             e.printStackTrace();
         } catch (JSONException e){
             e.printStackTrace();
-            System.out.println(e);
         }
         System.out.println("Processing complete! The file is available at " + allSingleProcessedData.getPath());
     }
@@ -189,8 +188,8 @@ public class ProcessAllFilesMain {
      */
     public static Map<Double, List<Double>> getMapping(String quarterType, boolean isPercent) {
         Map<Double, List<Double>> cutOffs = new TreeMap<Double, List<Double>>();
-        List<File> cse142Files = getCSFiles(quarterType);
-        for (File year : cse142Files) {
+        List<File> csFiles = getCSFiles(quarterType);
+        for (File year : csFiles) {
             try {
                 JSONObject cur = new JSONObject(readFile(year.getPath()));
                 JSONArray gradeCutoffs = cur.getJSONArray("grade_cutoffs");

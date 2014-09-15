@@ -91,9 +91,9 @@ public class Student implements Comparable<Student>{
      */
     @Override
     public int compareTo(Student other) {
-        if (this.getGrade() - other.getGrade() == 0){
+        if (this.getTotalScore() - other.getTotalScore() == 0){
             return 0;
-        } else if (this.getGrade() > other.getGrade()){
+        } else if (this.getTotalScore() > other.getTotalScore()){
             return -1;
         } else {
             return 1;

@@ -496,6 +496,9 @@ public class CSEData {
         }
         Collections.sort(allStudents);
         double[] cutoffs = new double[41];
+        for (int i = 0; i < cutoffs.length; i++) {
+            cutoffs[i] = -1.0;
+        }
         double cur = allStudents.get(0).getGrade();
         for (int i = 0; i < allStudents.size() - 1; i++) {
             double nextGrade = allStudents.get(i + 1).getGrade();
