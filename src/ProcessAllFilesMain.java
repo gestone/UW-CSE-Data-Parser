@@ -24,10 +24,10 @@ import java.util.*;
 public class ProcessAllFilesMain {
 
     public static void main(String[] args) {
-//        processCutoffSingleQuarterFiles();
+        processCutoffSingleQuarterFiles();
 //        processComparisonJSON();
-        combineAndCorrelateSingleQuarterFiles("142");
-        combineAndCorrelateSingleQuarterFiles("143");
+//        combineAndCorrelateSingleQuarterFiles("142");
+//        combineAndCorrelateSingleQuarterFiles("143");
     }
 
     /**
@@ -136,8 +136,8 @@ public class ProcessAllFilesMain {
                 double curGrade = i / 10.0;
                 List<Double> cutOff142CurList = cutOffs142.get(curGrade);
                 List<Double> cutOff143CurList = cutOffs143.get(curGrade);
-                Collections.sort(cutOff142CurList);
-                Collections.sort(cutOff143CurList);
+//                Collections.sort(cutOff142CurList);
+//                Collections.sort(cutOff143CurList);
                 JSONObject cse142GradeData = new JSONObject();
                 cse142GradeData.put(curGrade + "_avg_cutoff", findAverage(cutOff142CurList));
                 cse142GradeData.put(curGrade + "_min_cutoff", Collections.min(cutOff142CurList));
