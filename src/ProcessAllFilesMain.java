@@ -114,6 +114,7 @@ public class ProcessAllFilesMain {
             e.printStackTrace();
         } catch (JSONException e){
             e.printStackTrace();
+            System.out.println(e);
         }
         System.out.println("Processing complete! The file is available at " + allSingleProcessedData.getPath());
     }
