@@ -3,6 +3,8 @@ UW-CSE-Data-Parser
 
 This console based application takes in score sheets in from University of Washington's introductory CSE 142 and CSE 143 courses posted by Stuart Reges. The application can either take one score sheet in and perform analysis on that quarter in particular, or take in two consecutive quarters of 142 and 143 and calculate and graph the correlation between grades in 142 and 143.
 
+Note that all the raw data gradesheet files are already included in the CSRawData directory. This project will be constantly updated as Reges posts more gradesheets.
+
 The application has three core features:
 
 1. **Parse**: Parses the raw data spreadsheet and prints it out into a JSON file. In parsing a single file, each student's midterm, final, overall homework score, and final grade are stored into a JSONObject which is then outputted. If two files are selected, both the student's 142 and 143 midterm, final, homework percentage, and final grades are printed out to allow for comparision.
