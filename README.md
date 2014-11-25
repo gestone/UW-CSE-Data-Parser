@@ -17,4 +17,8 @@ The application has four core features:
   
   [Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSCorrelationData/2014/autumn2013winter2014.txt) of two consecutive courses with their scores for 142 and 143 for their midterm, homework, final, and final grades all correlated.
   
-3. 
+3. **Graph**: Given a single quarter, the program will graph the grade distribution of each grade (0.0 to 4.0). For two quarters, the the program will graph a scatter plot of CSE 142 grades on the x axis and CSE 143 grades on the y axis and perform linear regression to generate a line of best fit along with calculating the Pearson coefficient that will appear on the graph.
+
+  [Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSSampleGraphs/cse142autumn2013graph.png) of a single quarter graph with the grade distribution of grades of CSE Autumn 2013.
+  
+  [Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSSampleGraphs/cse142autumn2013cse143winter2014graph.png) of a scatterplot created from two consecutive quarters and their data.
