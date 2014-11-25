@@ -154,6 +154,7 @@ public class CSEDataMain {
         return actionsToPerform;
     }
 
+
     /**
      * Gets a list of actions to be performed on two quarters' worth of data.
      * @param userInput The scanner linked to console input.
