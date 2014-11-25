@@ -161,7 +161,14 @@ public class CSEData {
                 }
                 correlations.put(determineCategory(i), MathUtils.calculateCorrelation(otherCategory, grades));
             }
+            String fileName = fileTitle.substring(0, fileTitle.length() - 4) + ".json";
+            File f = new File("CSCorrelationData/" + year + "/" + fileName);
+            PrintStream p = new PrintStream(f);
+            p.println(correlations);
+            System.out.println("Finished creating JSON! The file is available at " + f.getPath() + ".");
         } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         return correlations;
@@ -289,9 +296,6 @@ public class CSEData {
             } else {
                 header = this.generateTitle() + " and " + cse143Data.generateTitle();
             }
-            p.println(header);
-            p.println("Total students taking coinnsecutive quarters: " + cse142.length);
-            p.println();
             System.out.println(header);
             System.out.println("Total students taking consecutive quarters: " + cse142.length);
             System.out.println();
@@ -303,6 +307,8 @@ public class CSEData {
             }
             double[] processCSE142 = new double[cse142.length];
             double[] processCSE143 = new double[cse143.length];
+            JSONObject correlations = new JSONObject();
+            correlations.put("students", cse142.length);
             for (int j = 0; j < AppConstant.TOTAL_CATEGORIES; j++) {
                 for (int k = 0; k < decomposedStudent142.size(); k++) {
                     processCSE142[k] = decomposedStudent142.get(k)[j];
@@ -312,14 +318,18 @@ public class CSEData {
                     String correlationMsg = AppConstant.CATEGORY_TYPES[j] + " correlation: " + MathUtils
                             .calculateCorrelation(processCSE142, processCSE143);
                     System.out.println(correlationMsg);
-                    p.println(correlationMsg);
+                    correlations.put(AppConstant.CATEGORY_TYPES[j].toLowerCase(), MathUtils.calculateCorrelation(processCSE142,
+                            processCSE143));
                 }
             }
+            p.println(correlations);
             p.flush();
             p.close();
             System.out.println();
             System.out.println("This information is also available at " + fileName + ".");
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }

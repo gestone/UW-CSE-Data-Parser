@@ -162,7 +162,9 @@ public class CSEDataMain {
      */
     public static List<Action> getTwoQuarterActions(Scanner userInput){
         List<Action> actionsToPerform = new ArrayList<Action>();
-        if (yesTo("Would you like to parse the repeat students' data into a JSON file?", userInput)){
+        if (yesTo("Would you like to parse the repeat students' (students that took 142 and 143 in consecutive " +
+                        "quarters) data into a JSON file?",
+                userInput)){
             actionsToPerform.add(Action.PARSE);
         }
         if (yesTo("Would you like to see a scatter plot of CSE 142 performance vs CSE 143 performance?", userInput)){
