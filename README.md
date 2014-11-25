@@ -13,6 +13,8 @@ The application has four core features:
 
 2. Correlate: Calculates the Pearson coefficent between various fields and a student's final grade. In correlating a single grade sheet, a student's midterm, homework, and final scores are correlated with their final grade. Each of these fields are then printed out to both the console and to a text file. For correlating two grade sheets from consecutive quarters, a student's respective categories, their midterm from 142 and 143, their homework % from 142 snd 143, and their final and final grades from 142 and 143 are all correlated. 
 
+  [Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSCorrelationData/2014/cse142autumn2013.json) of a single quarter with students' scores (midterm, homework, final) correlated with their final grade.
+  
   [Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSCorrelationData/2014/autumn2013winter2014.txt) of two consecutive courses with their scores for 142 and 143 for their midterm, homework, final, and final grades all correlated.
   
 3. 
