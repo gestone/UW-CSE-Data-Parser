@@ -24,5 +24,5 @@ The application has three core features:
   Here is an example of a single quarter graph with the grade distribution of grades of CSE Autumn 2013.
   ![Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSSampleGraphs/cse142autumn2013graph.png) 
   
-  Here is an example of a scatterplot created from two consecutive quarters and their data.
+  Here is an example of a scatterplot created from two consecutive quarters and their data. Note that the darker circles represent more instances of that particular grade.
   ![Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSSampleGraphs/cse142autumn2013cse143winter2014graph.png) 
