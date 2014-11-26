@@ -27,8 +27,8 @@ public class ProcessAllFilesMain {
         processCutoffSingleQuarterFiles();
         // uncomment these methods below to parse.
 //        processComparisonJSON();
-//        combineAndCorrelateSingleQuarterFiles("142");
-//        combineAndCorrelateSingleQuarterFiles("143");
+        combineAndCorrelateSingleQuarterFiles("142");
+        combineAndCorrelateSingleQuarterFiles("143");
     }
 
     /**
