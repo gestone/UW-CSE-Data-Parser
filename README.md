@@ -3,7 +3,9 @@ UW-CSE-Data-Parser
 
 This console based application takes in score sheets in from University of Washington's introductory CSE 142 and CSE 143 courses posted by Stuart Reges. The application can either take one score sheet in and perform analysis on that quarter in particular, or take in two consecutive quarters of 142 and 143 and calculate and graph the correlation between grades in 142 and 143.
 
-The application has four core features:
+Note that all the raw data gradesheet files are already included in the CSRawData directory. This project will be constantly updated as Reges posts more gradesheets.
+
+The application has three core features:
 
 1. **Parse**: Parses the raw data spreadsheet and prints it out into a JSON file. In parsing a single file, each student's midterm, final, overall homework score, and final grade are stored into a JSONObject which is then outputted. If two files are selected, both the student's 142 and 143 midterm, final, homework percentage, and final grades are printed out to allow for comparision.
 
@@ -17,4 +19,10 @@ The application has four core features:
   
   [Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSCorrelationData/2014/autumn2013winter2014.txt) of two consecutive courses with their scores for 142 and 143 for their midterm, homework, final, and final grades all correlated.
   
-3. 
+3. **Graph**: Given a single quarter, the program will graph the grade distribution of each grade (0.0 to 4.0). For two quarters, the the program will graph a scatter plot of CSE 142 grades on the x axis and CSE 143 grades on the y axis and perform linear regression to generate a line of best fit along with calculating the Pearson coefficient that will appear on the graph.
+
+  Here is an example of a single quarter graph with the grade distribution of grades of CSE Autumn 2013.
+  ![Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSSampleGraphs/cse142autumn2013graph.png) 
+  
+  Here is an example of a scatterplot created from two consecutive quarters and their data. Note that the darker circles represent more instances of that particular grade.
+  ![Here is an example](https://raw.githubusercontent.com/gestone/UW-CSE-Data-Parser/master/CSSampleGraphs/cse142autumn2013cse143winter2014graph.png) 
