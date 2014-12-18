@@ -26,9 +26,9 @@ public class ProcessAllFilesMain {
     public static void main(String[] args) {
         processCutoffSingleQuarterFiles();
         // uncomment these methods below to parse.
-//        processComparisonJSON();
-        combineAndCorrelateSingleQuarterFiles("142");
-        combineAndCorrelateSingleQuarterFiles("143");
+        processComparisonJSON();
+//        combineAndCorrelateSingleQuarterFiles("142");
+//        combineAndCorrelateSingleQuarterFiles("143");
     }
 
     /**

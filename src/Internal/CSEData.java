@@ -726,7 +726,7 @@ public class CSEData {
                 }
                 index++;
             }
-            if (code != 0) {
+            if (code != 0 && grade >= 0.0) {
                 allData.put(code, new Student(code, homework, midterm, finalExam, totalPercent, grade));
             }
         }
